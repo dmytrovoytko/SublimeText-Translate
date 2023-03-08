@@ -1,0 +1,6 @@
+{
+    "sublime_text": ">=3000",
+    "platforms": ["*"],
+    "description": "Sublime Text Translate",
+    "dependencies": [],
+}

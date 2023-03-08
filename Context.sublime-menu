@@ -1,0 +1,17 @@
+[
+	{"caption":"-"},
+    { 
+    	"caption": "[Google] Translate selected text", 
+    	"command": "st_translate", 
+    	"id":"go-translate",
+    },
+	{
+		"caption":"[Google] Translate selected to...",
+		"command": "st_translate_to",
+		"id":"go-translate",
+	},
+  	{
+		"caption":"[Google] Translate: Print supported languages to console",
+		"command": "st_translate_info",
+	}
+]
