@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+# Written by Dmytro Voytko (https://github.com/dmytrovoytko)
+# Largely inspired by the (outdated) "Inline Google Translate" plugin of MTimer 
+
 import json
 from urllib import parse, request
 from collections import OrderedDict
