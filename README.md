@@ -1,5 +1,5 @@
-Translate Plugin for SublimeText 3 & 4
-======================================
+Translate Plugin (multi-engine) for SublimeText 3 & 4
+=====================================================
 
 **Version:** 1.0.0, **[Google] translate**, supported **133** languages.
 
