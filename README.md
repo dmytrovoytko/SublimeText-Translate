@@ -22,13 +22,13 @@ First version includes Google translate, adding other translators is in developm
 1. Select some text in the editor
 2. Run **[Google] Translate selected text** command. 
 You can do it in 3 ways:
-- via hotkey **Ctrl+Alt+G** (Command+Alt+G in OSX)
+- via hotkey **Ctrl+Alt+G** (⌘Cmd+Alt+G in OSX)
 - via mouse right-click context menu > [Google] Translate selected text
-- via Command Pallet, Ctrl+Shist+P (Command+Shift+P in OSX) > [Google] Translate selected text
+- via Command Pallet, Ctrl+Shist+P (⌘Cmd+Shift+P in OSX) > [Google] Translate selected text
 3. If you want to change translation to inline mode, when translation replaces original selected text, change **results_mode** in settings.
 4. If you want to translate by default to different than English language, change **target_language** in settings.
 
-### Commands
+### Commands ###
 - **[Google] Translate selected text** - translates selected text baesd on settings
 - **[Google] Translate selected to...** - you choose the target language before translation
 - **[Google] Translate: Print supported languages to console** - to see available options for changing settings
