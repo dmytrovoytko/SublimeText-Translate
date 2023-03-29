@@ -1,4 +1,12 @@
 [
+	{
+		"caption": "Preferences: Translator Settings",
+		"command": "edit_settings",
+		"args": {
+			"base_file": "${packages}/SublimeText-Translate/stTranslate.sublime-settings",
+			"default": "{\n\t\"target_language\": \"$0en\",\n}\n"
+		}
+	},
   {
     "caption":"[Google] Translate selected text",
     "command": "st_translate"
@@ -10,5 +18,10 @@
   {
     "caption":"[Google] Translate: Print supported languages to console",
     "command": "st_translate_info"
+  },
+  {
+    "caption":"[Google] Translate: Print supported other info",
+    "command": "st_translate_info2"
   }
+
 ]

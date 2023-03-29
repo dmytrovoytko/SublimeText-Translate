@@ -28,7 +28,7 @@ You can do it in 3 ways:
 3. If you want to change translation to inline mode, when translation replaces original selected text, change **results_mode** in settings.
 4. If you want to translate by default to different than English language, change **target_language** in settings.
 
-### Commands ###
+### 🛠️ Commands ###
 - **[Google] Translate selected text** - translates selected text baesd on settings
 - **[Google] Translate selected to...** - you choose the target language before translation
 - **[Google] Translate: Print supported languages to console** - to see available options for changing settings

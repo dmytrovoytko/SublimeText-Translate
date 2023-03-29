@@ -1,6 +1,6 @@
 {
-	"source_language": "",          // If empty will be Auto detected
-    "target_language": "en",        // Must be specified	
-    "results_mode": "insert",       // "insert" or "replace" 
-    "engine": "google"              // "google", soon "alibaba" and others   
+	"source_language": "",      // If empty will be Auto detected
+    "target_language": "en",    // Must be specified	
+    "results_mode": "insert",   // "insert" or "replace" 
+    "engine": "google"          // "google", soon "alibaba" and others   
 }

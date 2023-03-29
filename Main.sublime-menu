@@ -13,7 +13,7 @@
                     { "command": "st_translate", "caption": "[Google] Translate selected text" },
                     { "command": "st_translate_to", "caption": "[Google] Translate selected to..." },
                     { "caption": "-" },
-                    { "command": "st_translate_info", "caption": "Print supported languages to console" }
+                    { "command": "st_translate_info", "caption": "Print supported languages to console" },
                 ]
             }
         ]
@@ -31,89 +31,28 @@
                 "children":
                 [
                     {
-                        "caption": "[Google] Translate",
+                        "caption": "Translator Settings",
                         "children":
                         [
                             { "caption": "-" },
                             {
-                                "command": "open_file",
+                                "caption": "Translator Settings",
+                                "command": "edit_settings",
                                 "args": {
-                                    "file": "${packages}/SublimeText-Translate/stTranslate.sublime-settings",
-                                    "platform": "OSX"
-                                },
-                                "caption": "Settings – Default"
+                                    "base_file": "${packages}/SublimeText-Translate/stTranslate.sublime-settings",
+                                    "default": "{\n\t$0\n}\n"
+                                }
                             },
                             {
-                                "command": "open_file",
+                                "caption": "Key Bindings",
+                                "command": "edit_settings",
                                 "args": {
-                                    "file": "${packages}/SublimeText-Translate/stTranslate.sublime-settings",
-                                    "platform": "Linux"
-                                },
-                                "caption": "Settings – Default"
-                            },
-                            {
-                                "command": "open_file",
-                                "args": {
-                                    "file": "${packages}/SublimeText-Translate/stTranslate.sublime-settings",
-                                    "platform": "Windows"
-                                },
-                                "caption": "Settings – Default"
-                            },
-                            {
-                                "command": "open_file",
-                                "args": {"file": "${packages}/User/stTranslate.sublime-settings"},
-                                "caption": "Settings – User"
+                                    "base_file": "${packages}/SublimeText-Translate/Default ($platform).sublime-keymap",
+                                    "user_file": "${packages}/User/Default ($platform).sublime-keymap",
+                                    "default": "// Bindings in here override those in \"Default/Default.sublime-keymap\"\n// Just copy, uncomment and save\n[\n\t$0\n]\n"
+                                }
                             },
                             { "caption": "-" },
-                            {
-                                "command": "open_file",
-                                "args": {
-                                    "file": "${packages}/SublimeText-Translate/Default (OSX).sublime-keymap",
-                                    "platform": "OSX"
-                                },
-                                "caption": "Key Bindings – Default"
-                            },
-                            {
-                                "command": "open_file",
-                                "args": {
-                                    "file": "${packages}/SublimeText-Translate/Default (Linux).sublime-keymap",
-                                    "platform": "Linux"
-                                },
-                                "caption": "Key Bindings – Default"
-                            },
-                            {
-                                "command": "open_file",
-                                "args": {
-                                    "file": "${packages}/SublimeText-Translate/Default (Windows).sublime-keymap",
-                                    "platform": "Windows"
-                                },
-                                "caption": "Key Bindings – Default"
-                            },
-                            {
-                                "command": "open_file",
-                                "args": {
-                                    "file": "${packages}/User/Default (OSX).sublime-keymap",
-                                    "platform": "OSX"
-                                },
-                                "caption": "Key Bindings – User"
-                            },
-                            {
-                                "command": "open_file",
-                                "args": {
-                                    "file": "${packages}/User/Default (Linux).sublime-keymap",
-                                    "platform": "Linux"
-                                },
-                                "caption": "Key Bindings – User"
-                            },
-                            {
-                                "command": "open_file",
-                                "args": {
-                                    "file": "${packages}/User/Default (Windows).sublime-keymap",
-                                    "platform": "Windows"
-                                },
-                                "caption": "Key Bindings – User"
-                            },
-                            { "caption": "-" }
                         ]
                     }
                 ]

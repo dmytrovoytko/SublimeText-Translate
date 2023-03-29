@@ -1,4 +1,0 @@
-[
-	{"keys": ["ctrl+alt+g"], "command": "st_translate"},
-	{"keys": ["ctrl+shift+alt+g"], "command": "st_translate_to"}  
-]
