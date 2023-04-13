@@ -5,15 +5,15 @@
         "children":
         [
             {
-                "caption": "[Google] Translate",
-                "mnemonic": "G",
+                "caption": "Translator",
+                "mnemonic": "T",
                 "id": "stTranslate",
                 "children":
                 [
-                    { "command": "st_translate", "caption": "[Google] Translate selected text" },
-                    { "command": "st_translate_to", "caption": "[Google] Translate selected to..." },
+                    { "command": "st_translate", "caption": "Translate selected text" },
+                    { "command": "st_translate_to", "caption": "Translate selected to..." },
                     { "caption": "-" },
-                    { "command": "st_translate_info", "caption": "Print supported languages to console" },
+                    { "command": "st_translate_info", "caption": "Print supported languages to console" }
                 ]
             }
         ]
@@ -31,7 +31,7 @@
                 "children":
                 [
                     {
-                        "caption": "Translator Settings",
+                        "caption": "Translator",
                         "children":
                         [
                             { "caption": "-" },
@@ -47,8 +47,8 @@
                                 "caption": "Key Bindings",
                                 "command": "edit_settings",
                                 "args": {
-                                    "base_file": "${packages}/SublimeText-Translate/Default ($platform).sublime-keymap",
-                                    "user_file": "${packages}/User/Default ($platform).sublime-keymap",
+                                    "base_file": "${packages}/SublimeText-Translate/Default.sublime-keymap",
+                                    "user_file": "${packages}/User/Default.sublime-keymap",
                                     "default": "// Bindings in here override those in \"Default/Default.sublime-keymap\"\n// Just copy, uncomment and save\n[\n\t$0\n]\n"
                                 }
                             },

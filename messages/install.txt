@@ -1,0 +1,58 @@
+Translator Plugin (multi-engine) for SublimeText 3 & 4
+======================================================
+
+**Version:** 1.1.0, **[Google] & [Bing] translate**, supported **133+** languages.
+
+
+Thank you for using my package!
+-------------------------------
+
+💡 If you used **Inline Google Translate** Sublime Text package (no longer working), this plugin is intended as a replacement. Just setup the key bindings and configure the engine & language. 
+
+
+🛠️ Configure
+============
+
+1. Set Source and Target Language, change insert/replace mode and translation engine:
+   
+   Preferences ➡️ Package Settings ➡️ Translator ➡️ Settings 
+    {
+        "source_language": "",      // Leave empty for Auto detection
+        "target_language": "en",    // ! Must be specified  
+        "results_mode": "insert",   // "insert" or "replace" 
+        "engine": "google"          // "google", "bing", try 'googlehk' for google.com.hk  
+    }
+
+2. You can enable key bindings to use translation commands easier:
+   
+   Preferences ➡️ Package Settings ➡️ Translator ➡️ Key Bindings (remove //)
+    [
+    //  {"keys": ["ctrl+alt+g"], "command": "st_translate"},
+    //  {"keys": ["ctrl+shift+alt+g"], "command": "st_translate_to"}  
+    ]
+
+
+🚀 Usage
+========
+
+Select text:
+
+* select Tools ➡️ Translator ➡️ `Translate seclected text` 
+*  or bind keys to use `Ctrl+Alt+G` 
+
+💡 Tips
+=======
+
+If translation works not as you expected, check your language code:
+
+* select Tools ➡️ Translator ➡️ `Print supported languages to console`
+* press `Ctrl + ~` to see output errors/warnings in console
+
+Your feedback and suggestions are welcome.
+
+Author
+======
+
+* Made with ❤️ in Ukraine 🇺🇦 [Dmytro Voytko](https://github.com/dmytrovoytko/)
+
+

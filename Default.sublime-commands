@@ -8,20 +8,15 @@
 		}
 	},
   {
-    "caption":"[Google] Translate selected text",
+    "caption":"Translate selected text",
     "command": "st_translate"
   },
   {
-    "caption":"[Google] Translate selected to...",
+    "caption":"Translate selected to...",
     "command": "st_translate_to"
   },
   {
-    "caption":"[Google] Translate: Print supported languages to console",
+    "caption":"Translator: Print supported languages to console",
     "command": "st_translate_info"
-  },
-  {
-    "caption":"[Google] Translate: Print supported other info",
-    "command": "st_translate_info2"
   }
-
 ]
