@@ -22,16 +22,16 @@ This version includes Google & Bing translate, adding other translators is in de
 1. Select some text in the editor
 2. Run **Translate selected text** command. 
 You can do it in 3 ways:
-- via hotkey **Ctrl+Alt+G** (⌘Cmd+Alt+G in OSX)
-- via mouse right-click context menu > [Google] Translate selected text
-- via Command Pallet, Ctrl+Shist+P (⌘Cmd+Shift+P in OSX) > [Google] Translate selected text
-3. If you want to change translation to inline mode when translation replaces original selected text, change **results_mode** in settings.
+- via binding and using hotkey **Ctrl+Alt+G** (⌘Cmd+Alt+G in OSX)
+- via Tools ➡️ Translator ➡️ Translate seclected text
+- via Command Pallet, Ctrl+Shist+P (⌘Cmd+Shift+P in OSX) > Translate selected text
+3. If you want to change translation to inline mode (when translation replaces original selected text), change **results_mode** in settings.
 4. If you want to translate by default to different than English language, change **target_language** in settings.
 
 ### 🛠️ Commands
 - **Translate selected text** - translates selected text baesd on settings
 - **Translate selected to...** - you choose the target language before translation
-- **Translator: Print supported languages to console** - to see available options for changing translation settings
+- **Translator: Print supported languages to console** - to see available languages for changing translation settings
 
 ## 🧰 Settings
 

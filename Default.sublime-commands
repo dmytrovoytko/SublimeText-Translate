@@ -3,20 +3,20 @@
     	"caption": "Preferences: Translator Settings",
     	"command": "edit_settings",
     	"args": {
-    		"base_file": "${packages}/Translator/stTranslate.sublime-settings",
+    		"base_file": "${packages}/Translator/Translator.sublime-settings",
     		"default": "{\n\t\"target_language\": \"$0en\",\n}\n"
     	}
     },
     {
         "caption":"Translate selected text",
-        "command": "st_translate"
+        "command": "translator"
     },
     {
         "caption":"Translate selected to...",
-        "command": "st_translate_to"
+        "command": "translator_to"
     },
     {
         "caption":"Translator: Print supported languages to console",
-        "command": "st_translate_info"
+        "command": "translator_info"
     }
 ]

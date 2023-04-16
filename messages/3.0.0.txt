@@ -27,8 +27,8 @@ Thank you for using my package!
    
    Preferences ➡️ Package Settings ➡️ Translator ➡️ Key Bindings (remove //)
     [
-    //  {"keys": ["ctrl+alt+g"], "command": "st_translate"},
-    //  {"keys": ["ctrl+shift+alt+g"], "command": "st_translate_to"}  
+    //  {"keys": ["ctrl+alt+g"], "command": "translator"},
+    //  {"keys": ["ctrl+shift+alt+g"], "command": "translator_to"}  
     ]
 
 

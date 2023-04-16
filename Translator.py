@@ -23,6 +23,13 @@ PLUGINPATH = dirname(realpath(__file__))
 __version__ = "3.0.0"
 # + Bing translate engine
 
+DEBUG_TEST = False
+try:
+    import sublime
+except Exception as e:
+    # Used for quick translation test outside SublineText before updating the plugin 
+    DEBUG_TEST = True
+
 class Translate(object):
     error_codes = {
         501: "ERR_SERVICE_NOT_AVAIBLE_TRY_AGAIN_OR_CHANGE_ENGINE",
@@ -65,12 +72,22 @@ class Translate(object):
             if not self.cache['languages'] and cache:
                 # TODO Update engine related languages list
                 if self.engine in ['google', 'googlehk']:
-                    with open(PLUGINPATH+'/google_languages.json') as f:
-                      _data = f.read()
+                    if DEBUG_TEST: # outside Sublime
+                        with open(PLUGINPATH+'/google_languages.json') as f:
+                          _data = f.read()
+                    else: # inside Sublime
+                        _locations = sublime.find_resources('google_languages.json')
+                        if _locations:
+                            _data = sublime.load_resource(_locations[0])                    
                     _languages = json.loads(_data, object_pairs_hook=OrderedDict)
                 elif self.engine == 'bing':
-                    with open(PLUGINPATH+'/bing_languages.json') as f:
-                      _data = f.read()
+                    if DEBUG_TEST: # outside Sublime
+                        with open(PLUGINPATH+'/bing_languages.json') as f:
+                          _data = f.read()
+                    else: # inside Sublime
+                        _locations = sublime.find_resources('bing_languages.json')
+                        if _locations:
+                            _data = sublime.load_resource(_locations[0])                    
                     _languages = json.loads(_data, object_pairs_hook=OrderedDict)
                 else:
                     _languages = ['Please, check engine website.']
@@ -192,7 +209,7 @@ if __name__ == "__main__":
 
 ## Sublime Plugin specific code
 import sublime, sublime_plugin
-settings = sublime.load_settings("stTranslate.sublime-settings")
+settings = sublime.load_settings("Translator.sublime-settings")
 
 class TranslatorError(Exception):
     sublime.status_message('Translation error. Check console.')
@@ -201,10 +218,10 @@ class TranslatorError(Exception):
         print('---\nTranslator error: {}\n---'.format(_e))
         sublime.active_window().run_command("show_panel", {"panel": "console"})
 
-class stTranslateCommand(sublime_plugin.TextCommand):
+class translatorCommand(sublime_plugin.TextCommand):
 
     def run(self, edit, source_language='', target_language=''):
-        settings = sublime.load_settings("stTranslate.sublime-settings")
+        settings = sublime.load_settings("Translator.sublime-settings")
         engine = settings.get('engine')
         if not source_language:
             source_language = settings.get("source_language")
@@ -222,7 +239,7 @@ class stTranslateCommand(sublime_plugin.TextCommand):
                 # print('selection: {0}'.format(selection))
 
                 if not target_language:
-                    self.view.run_command("st_translate_to")
+                    self.view.run_command("translator_to")
                     return                          
                 else:
                     # result = translate.GoogleTranslate(selection, source_language, target_language)
@@ -252,9 +269,9 @@ class stTranslateCommand(sublime_plugin.TextCommand):
         return False
 
 
-class stTranslateToCommand(sublime_plugin.TextCommand):
+class translatorToCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        settings = sublime.load_settings("stTranslate.sublime-settings")
+        settings = sublime.load_settings("Translator.sublime-settings")
         engine = settings.get("engine")
         source_language = settings.get("source_language")
         target_language = settings.get("target_language")
@@ -274,7 +291,7 @@ class stTranslateToCommand(sublime_plugin.TextCommand):
 
         def on_done(index):
             if index >= 0:
-                self.view.run_command("st_translate", {"target_language": lkey[index]})
+                self.view.run_command("translator", {"target_language": lkey[index]})
 
         self.view.window().show_quick_panel(ltrasl, on_done)
 
@@ -285,9 +302,9 @@ class stTranslateToCommand(sublime_plugin.TextCommand):
         return False
 
 
-class stTranslateInfoCommand(sublime_plugin.TextCommand):
+class translatorInfoCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        settings = sublime.load_settings("stTranslate.sublime-settings")
+        settings = sublime.load_settings("Translator.sublime-settings")
         engine = settings.get("engine")
         source_language = settings.get("source_language")
         target_language = settings.get("target_language")
@@ -304,7 +321,7 @@ class stTranslateInfoCommand(sublime_plugin.TextCommand):
         sublime.status_message('{0} Check console.'.format(notification))
         sublime.active_window().run_command("show_panel", {"panel": "console"})
     def is_visible(self):
-        settings = sublime.load_settings("stTranslate.sublime-settings")
+        settings = sublime.load_settings("Translator.sublime-settings")
         if settings.get('engine') in ['google','googlehk','bing']: 
             return True
         # else: TODO process new engines
@@ -312,6 +329,6 @@ class stTranslateInfoCommand(sublime_plugin.TextCommand):
 
 def plugin_loaded():
     global settings
-    settings = sublime.load_settings("stTranslate.sublime-settings")
+    settings = sublime.load_settings("Translator.sublime-settings")
     # engine = settings.get('engine')
     # print('Translator loaded. Current engine: {}'.format(engine))

@@ -7,13 +7,13 @@
             {
                 "caption": "Translator",
                 "mnemonic": "T",
-                "id": "stTranslate",
+                "id": "Translator",
                 "children":
                 [
-                    { "command": "st_translate", "caption": "Translate selected text" },
-                    { "command": "st_translate_to", "caption": "Translate selected to..." },
+                    { "command": "translator", "caption": "Translate selected text" },
+                    { "command": "translator_to", "caption": "Translate selected to..." },
                     { "caption": "-" },
-                    { "command": "st_translate_info", "caption": "Print supported languages to console" }
+                    { "command": "translator_info", "caption": "Print supported languages to console" }
                 ]
             }
         ]
@@ -39,7 +39,7 @@
                                 "caption": "Settings",
                                 "command": "edit_settings",
                                 "args": {
-                                    "base_file": "${packages}/Translator/stTranslate.sublime-settings",
+                                    "base_file": "${packages}/Translator/Translator.sublime-settings",
                                     "default": "{\n\t$0\n}\n"
                                 }
                             },
