@@ -1,4 +1,4 @@
 [
-//	{"keys": ["ctrl+alt+g"], "command": "st_translate"},
-//	{"keys": ["ctrl+shift+alt+g"], "command": "st_translate_to"}  
+//	{"keys": ["ctrl+alt+g"], "command": "translator"},
+//	{"keys": ["ctrl+shift+alt+g"], "command": "translator_to"}  
 ]
