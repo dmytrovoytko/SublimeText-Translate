@@ -1,22 +1,22 @@
 [
-	{
-		"caption": "Preferences: Translator Settings",
-		"command": "edit_settings",
-		"args": {
-			"base_file": "${packages}/SublimeText-Translate/stTranslate.sublime-settings",
-			"default": "{\n\t\"target_language\": \"$0en\",\n}\n"
-		}
-	},
-  {
-    "caption":"Translate selected text",
-    "command": "st_translate"
-  },
-  {
-    "caption":"Translate selected to...",
-    "command": "st_translate_to"
-  },
-  {
-    "caption":"Translator: Print supported languages to console",
-    "command": "st_translate_info"
-  }
+    {
+    	"caption": "Preferences: Translator Settings",
+    	"command": "edit_settings",
+    	"args": {
+    		"base_file": "${packages}/Translator/stTranslate.sublime-settings",
+    		"default": "{\n\t\"target_language\": \"$0en\",\n}\n"
+    	}
+    },
+    {
+        "caption":"Translate selected text",
+        "command": "st_translate"
+    },
+    {
+        "caption":"Translate selected to...",
+        "command": "st_translate_to"
+    },
+    {
+        "caption":"Translator: Print supported languages to console",
+        "command": "st_translate_info"
+    }
 ]

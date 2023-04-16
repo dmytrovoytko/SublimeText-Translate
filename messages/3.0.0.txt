@@ -1,7 +1,7 @@
 Translator Plugin (multi-engine) for SublimeText 3 & 4
 ======================================================
 
-**Version:** 1.1.0, **[Google] & [Bing] translate**, supported **133+** languages.
+**Version:** 3.0.0, **[Google] & [Bing] translate**, supported **133+** languages.
 
 
 Thank you for using my package!

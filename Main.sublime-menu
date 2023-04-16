@@ -36,10 +36,10 @@
                         [
                             { "caption": "-" },
                             {
-                                "caption": "Translator Settings",
+                                "caption": "Settings",
                                 "command": "edit_settings",
                                 "args": {
-                                    "base_file": "${packages}/SublimeText-Translate/stTranslate.sublime-settings",
+                                    "base_file": "${packages}/Translator/stTranslate.sublime-settings",
                                     "default": "{\n\t$0\n}\n"
                                 }
                             },
@@ -47,7 +47,7 @@
                                 "caption": "Key Bindings",
                                 "command": "edit_settings",
                                 "args": {
-                                    "base_file": "${packages}/SublimeText-Translate/Default.sublime-keymap",
+                                    "base_file": "${packages}/Translator/Default.sublime-keymap",
                                     "user_file": "${packages}/User/Default.sublime-keymap",
                                     "default": "// Bindings in here override those in \"Default/Default.sublime-keymap\"\n// Just copy, uncomment and save\n[\n\t$0\n]\n"
                                 }
