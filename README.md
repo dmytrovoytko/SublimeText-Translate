@@ -1,7 +1,7 @@
 Translator Plugin (multi-engine) for SublimeText 3 & 4
 ======================================================
 
-**Version:** 1.1.0, **[Google] & [Bing] translate**, supported **133+** languages.
+**Version:** 3.0.0, **[Google] & [Bing] translate**, supported **133+** languages.
 
 This plugin uses a standard Google/Bing translate page results. It works fast! And as API keys are not required it makes plugin very easy to use. However it isn't 100% officially supported, so if Google/Bing change their URL schema it could break the plugin.
 
@@ -57,5 +57,5 @@ MIT
 Credits:
 ========
 
-Inspired by old [Inline Google Translate](https://packagecontrol.io/packages/Inline%20Google%20Translate) package (by MTMGroup) that doesn't work since Google changed API.
-Used [Bing translate API](https://github.com/plainheart/bing-translate-api) approach, 谢谢! 
+* Inspired by old [Inline Google Translate](https://packagecontrol.io/packages/Inline%20Google%20Translate) package (by MTMGroup) that doesn't work since Google changed API.
+* Used [Bing translate API](https://github.com/plainheart/bing-translate-api) approach, 谢谢! 

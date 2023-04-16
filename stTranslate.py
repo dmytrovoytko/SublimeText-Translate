@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Written by Dmytro Voytko (https://github.com/dmytrovoytko)
 # Largely inspired by the (outdated) "Inline Google Translate" plugin of MTimer 
 #  and Bing translate API https://github.com/plainheart/bing-translate-api by Zhongxiang Wang
@@ -21,7 +20,7 @@ import requests
 from os.path import dirname, realpath
 PLUGINPATH = dirname(realpath(__file__))
 
-__version__ = "1.1.0"
+__version__ = "3.0.0"
 # + Bing translate engine
 
 class Translate(object):
@@ -301,7 +300,7 @@ class stTranslateInfoCommand(sublime_plugin.TextCommand):
         text = (json.dumps(translate.langs, ensure_ascii = False, indent = 2))
 
         print("{0}".format(text)) 
-        notification = '[Google] translate, supported {0} languages.'.format(len(translate.langs))
+        notification = 'Translator: [{0}] translate, supported {1} languages.'.format(engine, len(translate.langs))
         sublime.status_message('{0} Check console.'.format(notification))
         sublime.active_window().run_command("show_panel", {"panel": "console"})
     def is_visible(self):
