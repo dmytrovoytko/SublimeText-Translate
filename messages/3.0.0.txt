@@ -48,11 +48,12 @@ If translation works not as you expected, check your language code:
 * select Tools ➡️ Translator ➡️ `Print supported languages to console`
 * press `Ctrl + ~` to see output errors/warnings in console
 
-Your feedback and suggestions are welcome.
+Support
+=======
+
+* Your issues, feedback and suggestions regarding Translator plugin are welcome, feel free to report here https://github.com/dmytrovoytko/SublimeText-Translate/issues
 
 Author
 ======
 
-* Made with ❤️ in Ukraine 🇺🇦 [Dmytro Voytko](https://github.com/dmytrovoytko/)
-
-
+* Made with ❤️ in Ukraine 🇺🇦 Dmytro Voytko https://github.com/dmytrovoytko/
