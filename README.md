@@ -70,5 +70,5 @@ MIT
 Credits:
 ========
 
-* Inspired by old [Inline Google Translate](https://packagecontrol.io/packages/Inline%20Google%20Translate) package (by MTMGroup) that doesn't work since Google changed API.
+* Inspired by old [Inline Google Translate](https://github.com/MTMGroup/SublimeText-Google-Translate-Plugin) package (by MTMGroup) that doesn't work since Google changed API.
 * Used [Bing translate API](https://github.com/plainheart/bing-translate-api) approach, 谢谢! 
