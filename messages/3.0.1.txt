@@ -2,12 +2,13 @@ Translator Plugin (multi-engine) for SublimeText 3 & 4
 ======================================================
 
 **Version:** 3.0.1, **[Google] & [Bing] translate**, supported **133+** languages.
+New setting to show translation in popup without changing original text.
 
 
 Thank you for using my package!
 -------------------------------
 
-💡 If you used **Inline Google Translate** Sublime Text package (no longer working), this plugin is intended as a replacement. Just setup the key bindings and configure the engine & language. If you just need to see translation without changing original text, you can set **show_popup** in settings.
+💡 If you used **Inline Google Translate** Sublime Text package (no longer working), this plugin is intended as a replacement. Just setup the key bindings and configure the engine & language. 
 
 
 🛠️ Configure

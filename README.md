@@ -1,14 +1,14 @@
 Translator Plugin (multi-engine) for SublimeText 3 & 4
 ======================================================
 
-**Version:** 3.0.0, **[Google] & [Bing] translate**, supported **133+** languages.
+**Version:** 3.0.1, **[Google] & [Bing] translate**, supported **133+** languages.
 
 This plugin uses a standard Google/Bing translate page results. It works fast! And as API keys are not required it makes plugin very easy to use. However it isn't 100% officially supported, so if Google/Bing change their URL schema it could break the plugin.
 
 This version includes Google & Bing translate, adding other translators is in development.
 
 🎯 Features:
-============
+------------
 
 * 133+ languages supported 
 * SublimeText 3 & 4 supported
@@ -16,6 +16,7 @@ This version includes Google & Bing translate, adding other translators is in de
 * Ability to specify source & target languages in settings
 * Ability to choose the target language in context menu
 * 2 modes: **replace** selected text with translation, or **insert** translation after it
+* Ability to show translation in popup without changing original text
 
 ## 🚀 How to Use (easy)
 
@@ -26,7 +27,8 @@ You can do it in 3 ways:
 - via Tools ➡️ Translator ➡️ Translate seclected text
 - via Command Pallet, Ctrl+Shist+P (⌘Cmd+Shift+P in OSX) > Translate selected text
 3. If you want to change translation to inline mode (when translation replaces original selected text), change **results_mode** in settings.
-4. If you want to translate by default to different than English language, change **target_language** in settings.
+4. If you just want to see translation without changing your text, you can set **show_popup** in settings.
+5. If you want to translate by default to different than English language, change **target_language** in settings.
 
 ### 🛠️ Commands
 - **Translate selected text** - translates selected text baesd on settings
@@ -47,6 +49,7 @@ via Preferences ➡️ Package settings ➡️ Translator ➡️ Settings
         "source_language": "",      // Leave empty for Auto detection
         "target_language": "en",    // ! Must be specified  
         "results_mode": "insert",   // "insert" or "replace" 
+        "show_popup": false,        // false or true 
         "engine": "google"          // "google", "bing", try 'googlehk' for google.com.hk  
     }
 

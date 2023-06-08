@@ -20,8 +20,9 @@ import requests
 from os.path import dirname, realpath
 PLUGINPATH = dirname(realpath(__file__))
 
-__version__ = "3.0.0"
+__version__ = "3.0.1"
 # + Bing translate engine
+# + show_popup option to see translation without changing the text
 
 DEBUG_TEST = False
 try:
@@ -35,7 +36,7 @@ class Translate(object):
         501: "ERR_SERVICE_NOT_AVAIBLE_TRY_AGAIN_OR_CHANGE_ENGINE",
         503: "ERR_VALUE_ERROR",
     }
-    def __init__(self, engine='', source_lang='', target_lang='en', results_mode='insert'):
+    def __init__(self, engine='', source_lang='', target_lang='en', results_mode='insert', show_popup=False):
         self.cache = {
             'languages': None, 
         }
@@ -59,9 +60,12 @@ class Translate(object):
             target_lang = 'en'
         if not results_mode in ['insert', 'replace']:
             results_mode = 'insert'    
+        if not show_popup in [False, True]:
+            show_popup = False    
         self.source = source_lang
         self.target = target_lang
         self.results_mode = results_mode
+        self.show_popup = show_popup
         # extra initializations
         if engine=='bing':
             self.session = self._get_bing_session()
@@ -251,8 +255,14 @@ class translatorCommand(sublime_plugin.TextCommand):
                     #     result = tss.translate_text(selection, translator=engine, from_language=source_language, to_language=target_language)
 
                 # print('result: {0}'.format(result))
+                results_mode = settings.get('results_mode')
+                if settings.get('show_popup')==True:
+                    # TODO ?limit result length?
+                    confirmation = sublime.ok_cancel_dialog(result, results_mode.upper())
+                    if not confirmation:
+                        continue
 
-                if settings.get('results_mode')=='replace':
+                if results_mode=='replace':
                     v.replace(edit, region, result)
                 else:
                     v.insert(edit, v.sel()[0].end(), " {0}".format(result)) # insert to current View window
