@@ -20,9 +20,10 @@ import requests
 from os.path import dirname, realpath
 PLUGINPATH = dirname(realpath(__file__))
 
-__version__ = "3.0.1"
+__version__ = "3.0.2"
 # + Bing translate engine
 # + show_popup option to see translation without changing the text
+# + better error handling (unsuccessful requests)
 
 DEBUG_TEST = False
 try:
@@ -112,12 +113,16 @@ class Translate(object):
         _text = parse.quote(text.encode("utf-8"))
         _url  = "{0}&sl={1}&tl={2}&dt=t&q={3}".format(API_URL, source_lang, target_lang, _text)
         # print('GoogleTranslate: sl {0}, tl {1}, url {2}'.format(source_lang, target_lang, _url))
-        _data = request.urlopen(_url).read()
-        _obj = json.loads(str(_data,'utf-8'))
-        result = []
-        for s in _obj[0]:
-            result.append(s[0])
-        return "".join(result)
+        try:
+            _data = request.urlopen(_url).read()
+            _obj = json.loads(str(_data,'utf-8'))
+            result = []
+            for s in _obj[0]:
+                result.append(s[0])
+            return "".join(result)
+        except Exception as e:
+            print("Google translate error: {}".format(e))
+            return 'Google translate error'
 
     # BingTranslator:
     # https://www.microsoft.com/en-us/translator/languages/
@@ -151,21 +156,22 @@ class Translate(object):
         _text = text.encode("utf-8")
         _url  = "{0}&IG={1}&IID=translator.{2}.{3}".format(API_URL, self.session.headers.get("IG"), random.randint(5019, 5026), random.randint(1, 3))
         _data = {'': '', 'fromLang': source_lang, 'to': target_lang, 'text': _text, 'token': self.session.headers.get('token'), 'key': self.session.headers.get('key')}
-        response = self.session.post(_url, data=_data).json()
-        if type(response) is dict:
-            if 'ShowCaptcha' in response.keys():
-                self.session = self._get_bing_session()
-                return self.BingTranslate(_text, source_lang, target_lang)
-            elif 'statusCode' in response.keys():
-                if response['statusCode'] == 400:
-                    response['errorMessage'] = '1000 characters limit! You send {} characters.'.format(len(_text))
+        try:
+            response = self.session.post(_url, data=_data).json()
+            if type(response) is dict:
+                if 'ShowCaptcha' in response.keys():
+                    self.session = self._get_bing_session()
+                    return self.BingTranslate(_text, source_lang, target_lang)
+                elif 'statusCode' in response.keys():
+                    if response['statusCode'] == 400:
+                        response['errorMessage'] = '1000 characters limit! You send {} characters.'.format(len(_text))
+                else:
+                    return response['translations'][0]['text']
             else:
-                return response['translations'][0]['text']
-        else:
-            return response[0]['translations'][0]['text']
-        # it should go here only in case of error
-        print("Bing translate response: {}".format(response))
-        return response
+                return response[0]['translations'][0]['text']
+        except Exception as e:
+            print("Bing translate error: {}".format(e))
+            return 'Bing translate error'
 
     def translate(self, text, source_lang='', target_lang=''):
         if self.engine in ['google', 'googlehk']:
@@ -205,9 +211,15 @@ if __name__ == "__main__":
     try:
         translate = Translate('googlehk', '', 'uk')
         print(translate.translate(wyw_text))
-        print(translate.translate(eng_text, 'en', 'zh-Hans'))
+        print(translate.translate(eng_text, 'en', 'zh-CN'))
     except Exception as e:
         print('GoogleTranslate error: {}'.format(e))
+    try:
+        translate = Translate('bing', '', 'uk')
+        print(translate.translate(wyw_text))
+        print(translate.translate(eng_text, 'en', 'zh-Hans'))
+    except Exception as e:
+        print('BingTranslate error: {}'.format(e))
     # exit to prevent Sublime Plugin specific code errors - it works only inside Sublime
     exit()
 
@@ -327,7 +339,7 @@ class translatorInfoCommand(sublime_plugin.TextCommand):
         text = (json.dumps(translate.langs, ensure_ascii = False, indent = 2))
 
         print("{0}".format(text)) 
-        notification = 'Translator: [{0}] translate, supported {1} languages.'.format(engine, len(translate.langs))
+        notification = 'Translator {0}: [{1}] translate, supported {2} languages.'.format(__version__, engine, len(translate.langs))
         sublime.status_message('{0} Check console.'.format(notification))
         sublime.active_window().run_command("show_panel", {"panel": "console"})
     def is_visible(self):
