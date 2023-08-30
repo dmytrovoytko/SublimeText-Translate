@@ -20,10 +20,12 @@ import requests
 from os.path import dirname, realpath
 PLUGINPATH = dirname(realpath(__file__))
 
-__version__ = "3.0.2"
-# + Bing translate engine
-# + show_popup option to see translation without changing the text
-# + better error handling (unsuccessful requests)
+__version__ = "3.1.0"
+# 3.0.0 + Bing translate engine
+# 3.0.1 + show_popup option to see translation without changing the text
+# 3.0.2 + better error handling (unsuccessful requests)
+# 3.1.0 + translation of the current word (without selection); 
+#       + new results_mode "to_buffer" (to clipboard)
 
 DEBUG_TEST = False
 try:
@@ -59,7 +61,7 @@ class Translate(object):
                 source_lang = 'auto'
         if not target_lang:
             target_lang = 'en'
-        if not results_mode in ['insert', 'replace']:
+        if not results_mode in ['insert', 'replace', 'to_buffer']:
             results_mode = 'insert'    
         if not show_popup in [False, True]:
             show_popup = False    
@@ -247,13 +249,18 @@ class translatorCommand(sublime_plugin.TextCommand):
         # print('engine: {0}, source_language {1}, target_language {2}'.format(engine, source_language, target_language))
         translate = Translate(engine=engine, source_lang=source_language, target_lang=target_language)
 
+        v = self.view
         for region in self.view.sel():
-            if not region.empty():
-
-                v = self.view
+            if not region.empty(): # some text selected
                 selection = v.substr(region)
-                # print('selection: {0}'.format(selection))
+                #print('selection: {0}'.format(selection))
+            elif not self.view.word(region).empty(): # current word as selection
+                selection = v.substr(self.view.word(region))
+                #print('w selection: {0}'.format(selection))
+            else:
+                selection = ''
 
+            if len(selection):
                 if not target_language:
                     self.view.run_command("translator_to")
                     return                          
@@ -275,18 +282,30 @@ class translatorCommand(sublime_plugin.TextCommand):
                         continue
 
                 if results_mode=='replace':
-                    v.replace(edit, region, result)
-                else:
-                    v.insert(edit, v.sel()[0].end(), " {0}".format(result)) # insert to current View window
+                    if not region.empty(): # selected text
+                        v.replace(edit, region, result)
+                    else: # current word
+                        pos = (v.word(region)).a # beginning of current word
+                        v.replace(edit, v.word(region), result)
+                        v.sel().clear()
+                        v.sel().add(sublime.Region(pos)) # move cursor at the beginning of word
+                elif results_mode=='insert':
+                    if not region.empty(): # selected text
+                        v.insert(edit, v.sel()[0].end(), " {0}".format(result)) # insert to current View window
+                    else: # current word
+                        v.insert(edit, v.word(region).end(), " {0}".format(result)) # insert to current View window
+                else: # 'to_buffer'
+                    sublime.set_clipboard(result)
+
                 if not source_language:
                     detected = 'Auto'
                 else:
                     detected = source_language
-                sublime.status_message(u'Done! (translate '+detected+' --> '+target_language+')')
+                sublime.status_message(u'Done! (translate '+detected+' --> '+target_language+' --> '+results_mode+')')
 
     def is_visible(self):
         for region in self.view.sel():
-            if not region.empty():
+            if not self.view.word(region).empty(): #region.empty():
                 return True
         return False
 
@@ -297,10 +316,6 @@ class translatorToCommand(sublime_plugin.TextCommand):
         engine = settings.get("engine")
         source_language = settings.get("source_language")
         target_language = settings.get("target_language")
-
-        v = self.view
-        selection = v.substr(v.sel()[0])
-
         translate = Translate(engine, source_language, target_language)
 
         langs = translate.langs
@@ -319,7 +334,7 @@ class translatorToCommand(sublime_plugin.TextCommand):
 
     def is_visible(self):
         for region in self.view.sel():
-            if not region.empty():
+            if not self.view.word(region).empty(): #region.empty():
                 return True
         return False
 
@@ -342,6 +357,7 @@ class translatorInfoCommand(sublime_plugin.TextCommand):
         notification = 'Translator {0}: [{1}] translate, supported {2} languages.'.format(__version__, engine, len(translate.langs))
         sublime.status_message('{0} Check console.'.format(notification))
         sublime.active_window().run_command("show_panel", {"panel": "console"})
+        
     def is_visible(self):
         settings = sublime.load_settings("Translator.sublime-settings")
         if settings.get('engine') in ['google','googlehk','bing']: 

@@ -1,0 +1,45 @@
+Translator Plugin (multi-engine) for SublimeText 3 & 4
+======================================================
+
+**Version:** 3.1.0 
+
+Thank you for using my package!
+-------------------------------
+
+# Translator 3.1.0 Changelog
+
+Your _Translator_ plugin is updated. Enjoy new version. For any type of
+feedback you can use [GitHub issues](https://github.com/dmytrovoytko/SublimeText-Translate/issues).
+
+## New Features
+
+- you can translate the current word under cursor without the need of selecting it
+- new results_mode - "to_buffer" - translation goes to clipboard without changing original text
+
+### 🛠️ Configure
+   
+   Preferences ➡️ Package Settings ➡️ Translator ➡️ Settings 
+    {
+        "source_language": "",      // Leave empty for Auto detection
+        "target_language": "en",    // ! Must be specified  
+        "results_mode": "insert",   // "insert", "replace" or "to_buffer"
+        "show_popup": false,        // false or true 
+        "engine": "google"          // "google", "bing", try 'googlehk' for google.com.hk  
+    }
+
+## 💡 Tips
+
+If translation works not as you expected, check your language code / errors in console:
+
+* select Tools ➡️ Translator ➡️ `Print supported languages to console`
+* press `Ctrl + ~` to see output errors/warnings in console
+
+## Support
+
+* Your issues, feedback and suggestions regarding Translator plugin are welcome, feel free to report here https://github.com/dmytrovoytko/SublimeText-Translate/issues
+
+* Made with ❤️ in Ukraine 🇺🇦 Dmytro Voytko https://github.com/dmytrovoytko/
+
+If you find Translator package helpful, please ⭐️star⭐️ my repo https://github.com/dmytrovoytko/SublimeText-Translate/ 🙏
+  
+

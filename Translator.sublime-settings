@@ -1,7 +1,7 @@
 {
 	"source_language": "",      // Leave empty for Auto detection
     "target_language": "en",    // ! Must be specified	
-    "results_mode": "insert",   // "insert" or "replace" 
+    "results_mode": "insert",   // "insert", "replace" or "to_buffer" 
     "show_popup": false,        // false or true 
     "engine": "google"          // "google", "bing", try 'googlehk' for google.com.hk 
 }
