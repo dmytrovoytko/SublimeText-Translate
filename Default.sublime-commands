@@ -16,6 +16,10 @@
         "command": "translator_to"
     },
     {
+        "caption":"Translate clipboard",
+        "command": "translator_from_buffer"
+    },
+    {
         "caption":"Translator: Print supported languages to console",
         "command": "translator_info"
     }

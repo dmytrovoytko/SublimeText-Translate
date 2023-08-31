@@ -1,7 +1,7 @@
 Translator Plugin (multi-engine) for SublimeText 3 & 4
 ======================================================
 
-**Version:** 3.0.1, **[Google] & [Bing] translate**, supported **133+** languages.
+**Version:** 3.2.0, **[Google] & [Bing] translate**, supported **133+** languages.
 
 
 Thank you for using my package!
@@ -17,11 +17,13 @@ Thank you for using my package!
    
    Preferences ➡️ Package Settings ➡️ Translator ➡️ Settings 
     {
-        "source_language": "",      // Leave empty for Auto detection
-        "target_language": "en",    // ! Must be specified  
-        "results_mode": "insert",   // "insert" or "replace" 
-        "show_popup": false,        // false or true 
-        "engine": "google"          // "google", "bing", try 'googlehk' for google.com.hk  
+        "engine": "google",           // "google", "bing", 'googlehk' for google.com.hk 
+        "source_language": "",        // Leave empty for Auto detection
+        "target_language": "en",      // ! Must be specified    
+        "results_mode": "insert",     // "insert", "replace" or "to_buffer" 
+        "show_popup": false,          // false or true 
+        "replace_linebreaks": false,  // false or true 
+        "linebreak_replacement": " "  // could be a space, comma, semicolon, etc
     }
 
 2. You can enable key bindings to use translation commands easier:
@@ -29,14 +31,15 @@ Thank you for using my package!
    Preferences ➡️ Package Settings ➡️ Translator ➡️ Key Bindings (remove //)
     [
     //  {"keys": ["ctrl+alt+g"], "command": "translator"},
-    //  {"keys": ["ctrl+shift+alt+g"], "command": "translator_to"}  
+    //  {"keys": ["ctrl+shift+alt+g"], "command": "translator_to"},  
+    //  {"keys": ["ctrl+alt+b"], "command": "translator_from_buffer"}  
     ]
 
 
 🚀 Usage
 ========
 
-Select text:
+Select text (or put cursor on a word to translate), then:
 
 * select Tools ➡️ Translator ➡️ `Translate seclected text` 
 *  or bind keys to use `Ctrl+Alt+G` 
@@ -52,9 +55,12 @@ If translation works not as you expected, check your language code:
 Support
 =======
 
-* Your issues, feedback and suggestions regarding Translator plugin are welcome, feel free to report here https://github.com/dmytrovoytko/SublimeText-Translate/issues
+* Your issues, feedback and suggestions regarding Translator plugin are welcome, feel free to report [here](https://github.com/dmytrovoytko/SublimeText-Translate/issues).
+* Feel free to fork and submit pull requests.
 
 Author
 ======
 
-* Made with ❤️ in Ukraine 🇺🇦 Dmytro Voytko https://github.com/dmytrovoytko/
+* Made with ❤️ in Ukraine 🇺🇦 Dmytro Voytko
+
+If you find Translator package helpful, please ⭐️star⭐️ my repo https://github.com/dmytrovoytko/SublimeText-Translate/ to help other people discover it 🙏

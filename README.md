@@ -3,7 +3,7 @@
 Translator Plugin (multi-engine) for SublimeText 3 & 4
 ======================================================
 
-**Version:** 3.1.0, **[Google] & [Bing] translate**, supported **133+** languages.
+**Version:** 3.2.0, **[Google] & [Bing] translate**, supported **133+** languages.
 
 This plugin uses a standard Google/Bing translate page results. It works fast! And as API keys are not required it makes plugin very easy to use. However it isn't 100% officially supported, so if Google/Bing change their URL schema it could break the plugin.
 
@@ -22,7 +22,8 @@ This version includes Google & Bing translate, adding other translators is in de
     - **insert** translation after it (default)
     - **to_buffer** - translation goes to clipboard (without changing the text)
 * Ability to show translation in popup without changing original text
-* Ability to translate current word if no text selected
+* Ability to translate your clipboard / current word if no text selected
+* Ability to replace line breaks inside text while translating (with space, comma, etc), useful to translate .po files
 
 ## 🚀 How to Use (easy)
 
@@ -32,18 +33,20 @@ You can do it in 3 ways:
 - via binding and using hotkey **Ctrl+Alt+G** (⌘Cmd+Alt+G in OSX)
 - via Tools ➡️ Translator ➡️ Translate seclected text
 - via Command Pallet, Ctrl+Shift+P (⌘Cmd+Shift+P in OSX) > Translate selected text
+* you can also translate the text in your clipboard, or the current word if no text selected 
 3. If you want to change translation to inline mode (when translation replaces original selected text), change **results_mode** in settings.
 4. If you just want to see translation without changing your text, you can set **show_popup** in settings.
 5. If you want to translate by default to different than English language, change **target_language** in settings.
 
 ### 🛠️ Commands
-- **Translate selected text** - translates selected text baesd on settings
+- **Translate selected text** - translates selected text based on your settings
 - **Translate selected to...** - you choose the target language before translation
+- **Translate clipboard** - translates text of your clipboard based on your settings
 - **Translator: Print supported languages to console** - to see available languages for changing translation settings
 
 ## Installation (via Package Control)
 
-* If you don't have Package Control follow [this instruction](https://packagecontrol.io/installation)
+* If you don't have Package Control, follow [this instruction](https://packagecontrol.io/installation)
 * Open the Command Palette (Tools ➡️ Command Palette… )
 * Search for and choose “Package Control: Install Package” (give it a few seconds to return a list of available packages)
 * Search for “Translator” and install.
@@ -53,11 +56,13 @@ You can do it in 3 ways:
 via Preferences ➡️ Package settings ➡️ Translator ➡️ Settings
 
     {
-        "source_language": "",      // Leave empty for Auto detection
-        "target_language": "en",    // ! Must be specified  
-        "results_mode": "insert",   // "insert", "replace" or "to_buffer"
-        "show_popup": false,        // false or true 
-        "engine": "google"          // "google", "bing", try 'googlehk' for google.com.hk  
+        "engine": "google",           // "google", "bing", 'googlehk' for google.com.hk 
+        "source_language": "",        // Leave empty for Auto detection
+        "target_language": "en",      // ! Must be specified    
+        "results_mode": "insert",     // "insert", "replace" or "to_buffer" 
+        "show_popup": false,          // false or true 
+        "replace_linebreaks": false,  // false or true 
+        "linebreak_replacement": " "  // could be a space, comma, semicolon, etc
     }
 
 
@@ -67,7 +72,7 @@ via Preferences ➡️ Package settings ➡️ Translator ➡️ Settings
 
 Made with ❤️ in Ukraine 🇺🇦 Dmytro Voytko
 
-If you find Translator package helpful, please ⭐️star⭐️ my repo https://github.com/dmytrovoytko/SublimeText-Translate/ 🙏
+If you find Translator package helpful, please ⭐️star⭐️ my repo https://github.com/dmytrovoytko/SublimeText-Translate/ to help other people discover it 🙏
 
 ## Support
 

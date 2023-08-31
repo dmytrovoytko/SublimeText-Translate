@@ -8,7 +8,7 @@ Thank you for using my package!
 
 # Translator 3.1.0 Changelog
 
-Your _Translator_ plugin is updated. Enjoy new version. For any type of
+Your _Translator_ plugin has been updated. Enjoy new version. For any type of
 feedback you can use [GitHub issues](https://github.com/dmytrovoytko/SublimeText-Translate/issues).
 
 ## New Features
@@ -41,5 +41,3 @@ If translation works not as you expected, check your language code / errors in c
 * Made with ❤️ in Ukraine 🇺🇦 Dmytro Voytko https://github.com/dmytrovoytko/
 
 If you find Translator package helpful, please ⭐️star⭐️ my repo https://github.com/dmytrovoytko/SublimeText-Translate/ 🙏
-  
-

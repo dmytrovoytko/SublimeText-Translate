@@ -20,12 +20,14 @@ import requests
 from os.path import dirname, realpath
 PLUGINPATH = dirname(realpath(__file__))
 
-__version__ = "3.1.0"
+__version__ = "3.2.0"
 # 3.0.0 + Bing translate engine
 # 3.0.1 + show_popup option to see translation without changing the text
 # 3.0.2 + better error handling (unsuccessful requests)
 # 3.1.0 + translation of the current word (without selection); 
 #       + new results_mode "to_buffer" (to clipboard)
+# 3.2.0 + new command - translate clipboard
+#       + ability to replace line breaks inside text while translating (with space, comma, etc)
 
 DEBUG_TEST = False
 try:
@@ -238,7 +240,8 @@ class TranslatorError(Exception):
 
 class translatorCommand(sublime_plugin.TextCommand):
 
-    def run(self, edit, source_language='', target_language=''):
+    def run(self, edit, source_language='', target_language='', source_text=''):
+        #print('st: '+source_text)
         settings = sublime.load_settings("Translator.sublime-settings")
         engine = settings.get('engine')
         if not source_language:
@@ -251,7 +254,10 @@ class translatorCommand(sublime_plugin.TextCommand):
 
         v = self.view
         for region in self.view.sel():
-            if not region.empty(): # some text selected
+            if source_text=='buffer':
+                selection = sublime.get_clipboard(10000).strip() # limit to prevent issues
+                #print('cl selection: {0}'.format(selection))
+            elif not region.empty(): # some text selected
                 selection = v.substr(region)
                 #print('selection: {0}'.format(selection))
             elif not self.view.word(region).empty(): # current word as selection
@@ -261,6 +267,11 @@ class translatorCommand(sublime_plugin.TextCommand):
                 selection = ''
 
             if len(selection):
+                if settings.get("replace_linebreaks", False):
+                    replacement = settings.get("linebreak_replacement", ' ')
+                    selection = selection.replace('"\n"', replacement)
+                    selection = selection.replace('\n', replacement)
+                    print(selection)
                 if not target_language:
                     self.view.run_command("translator_to")
                     return                          
@@ -285,15 +296,30 @@ class translatorCommand(sublime_plugin.TextCommand):
                     if not region.empty(): # selected text
                         v.replace(edit, region, result)
                     else: # current word
-                        pos = (v.word(region)).a # beginning of current word
-                        v.replace(edit, v.word(region), result)
-                        v.sel().clear()
-                        v.sel().add(sublime.Region(pos)) # move cursor at the beginning of word
+                        _word = v.substr(v.word(region))
+                        #print('w selection: ->{0}<-'.format(_word))
+                        if _word.strip()=='': 
+                            _shift = 0 if len(_word)==0 else 1
+                            v.insert(edit, v.word(region).begin()+_shift, "{0}".format(result)) # insert to current View window
+                        elif _word in ['""',"''"]: #  and source_text=='buffer' 
+                            # let's put translation inside the quotes
+                            v.insert(edit, v.word(region).begin()+1, "{0}".format(result)) # insert to current View window
+                        else:
+                            pos = (v.word(region)).begin() # beginning of current word
+                            v.replace(edit, v.word(region), result)
+                            v.sel().clear()
+                            v.sel().add(sublime.Region(pos)) # move cursor at the beginning of word
                 elif results_mode=='insert':
                     if not region.empty(): # selected text
                         v.insert(edit, v.sel()[0].end(), " {0}".format(result)) # insert to current View window
                     else: # current word
-                        v.insert(edit, v.word(region).end(), " {0}".format(result)) # insert to current View window
+                        #print('w selection: {0}'.format(v.substr(v.word(region))))
+                        if v.substr(v.word(region)) in ['""',"''"]: 
+                            # let's put translation inside the quotes
+                            v.insert(edit, v.word(region).begin()+1, "{0}".format(result)) # insert to current View window
+                        else:
+                            # instert after
+                            v.insert(edit, v.word(region).end(), " {0}".format(result)) # insert to current View window
                 else: # 'to_buffer'
                     sublime.set_clipboard(result)
 
@@ -336,6 +362,39 @@ class translatorToCommand(sublime_plugin.TextCommand):
         for region in self.view.sel():
             if not self.view.word(region).empty(): #region.empty():
                 return True
+        return False
+
+
+class translatorFromBufferCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        settings = sublime.load_settings("Translator.sublime-settings")
+        engine = settings.get("engine")
+        source_language = settings.get("source_language")
+        target_language = settings.get("target_language")
+        translate = Translate(engine, source_language, target_language)
+
+        # def on_done(buffer):
+        #     #print('translatorFromBufferCommand on_done')
+        #     if len(buffer):
+        #         #print('translatorFromBufferCommand executing')
+        #         print('cl: '+buffer)
+        #         self.view.run_command("translator", {"source_text": 'buffer'}) # doesn't call ?!
+        #     else:
+        #         print('Clipboard size is too big (>10000). Please select shorter text.')
+
+        buffer = sublime.get_clipboard(10000) #_async(on_done, 10000)
+        if len(buffer):
+            self.view.run_command("translator", {"source_text": 'buffer'})
+        else:
+            notification = 'Clipboard size is too big (>10000). Please select shorter text.'
+            sublime.status_message('ERROR! Check console: {0}'.format(notification))
+            print(notification)
+
+    def is_visible(self):
+        settings = sublime.load_settings("Translator.sublime-settings")
+        if settings.get('engine') in ['google','googlehk','bing']: 
+            return True
+        # else: TODO process new engines
         return False
 
 
