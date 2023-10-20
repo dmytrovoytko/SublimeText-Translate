@@ -16,7 +16,7 @@ Your _Translator_ plugin has been updated. Enjoy new version.
 - **Analyze text** - to see text statistics, readability checks and highlights
 - **Clear Analysis highlights** - to clear text analysis highlights
 
-* improved behaviour while inserting translation from clipboard without selection (quotes, brackets, parenteces aware)
+* improved behavior while inserting translation from clipboard without selection (quotes, brackets, parenthesis aware)
 
 💡 If you want to **check Readability**, select some text and run **Analyze text** command. 
 You can do it in 3 ways:
