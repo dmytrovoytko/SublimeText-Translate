@@ -22,5 +22,13 @@
     {
         "caption":"Translator: Print supported languages to console",
         "command": "translator_info"
+    },
+    {
+        "caption":"Analyze text",
+        "command": "translator_text_analysis"
+    },
+    {
+        "caption":"Clear Analysis highlights",
+        "command": "translator_clear_analysis"
     }
 ]

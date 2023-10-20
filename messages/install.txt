@@ -1,7 +1,7 @@
 Translator Plugin (multi-engine) for SublimeText 3 & 4
 ======================================================
 
-**Version:** 3.2.0, **[Google] & [Bing] translate**, supported **133+** languages.
+**Version:** 3.3.0, **[Google] & [Bing] translate**, supported **133+** languages.
 
 
 Thank you for using my package!
@@ -16,23 +16,25 @@ Thank you for using my package!
 1. Set Source and Target Language, change insert/replace mode and translation engine:
    
    Preferences ➡️ Package Settings ➡️ Translator ➡️ Settings 
-    {
-        "engine": "google",           // "google", "bing", 'googlehk' for google.com.hk 
-        "source_language": "",        // Leave empty for Auto detection
-        "target_language": "en",      // ! Must be specified    
-        "results_mode": "insert",     // "insert", "replace" or "to_buffer" 
-        "show_popup": false,          // false or true 
-        "replace_linebreaks": false,  // false or true 
-        "linebreak_replacement": " "  // could be a space, comma, semicolon, etc
-    }
+     {
+       "engine": "google",           // "google", "bing", 'googlehk' for google.com.hk 
+       "source_language": "",        // Leave empty for Auto detection
+       "target_language": "en",      // ! Must be specified 
+       "results_mode": "insert",     // "insert", "replace" or "to_buffer" 
+       "show_popup": false,          // false or true 
+       "replace_linebreaks": false,  // false or true 
+       "linebreak_replacement": " ", // could be a space, comma, semicolon, etc
+       "analysis_language": "en"     // Language for Text Analysis: "en", "uk"
+     }
 
 2. You can enable key bindings to use translation commands easier:
    
    Preferences ➡️ Package Settings ➡️ Translator ➡️ Key Bindings (remove //)
     [
-    //  {"keys": ["ctrl+alt+g"], "command": "translator"},
-    //  {"keys": ["ctrl+shift+alt+g"], "command": "translator_to"},  
-    //  {"keys": ["ctrl+alt+b"], "command": "translator_from_buffer"}  
+      // {"keys": ["ctrl+alt+g"], "command": "translator"},
+      // {"keys": ["ctrl+shift+alt+g"], "command": "translator_to"},  
+      // {"keys": ["ctrl+alt+b"], "command": "translator_from_buffer"},  
+      // {"keys": ["ctrl+alt+a"], "command": "translator_text_analysis"}  
     ]
 
 
@@ -41,8 +43,16 @@ Thank you for using my package!
 
 Select text (or put cursor on a word to translate), then:
 
-* select Tools ➡️ Translator ➡️ `Translate seclected text` 
+* select `Tools ➡️ Translator ➡️ Translate seclected text` 
 *  or bind keys to use `Ctrl+Alt+G` 
+
+💡 If you want to **check Readability**, select some text and run **Analyze text** command. 
+You can do it in 3 ways:
+- via binding and using hotkey **Ctrl+Alt+A** (⌘Cmd+Alt+A in OSX)
+- via `Tools ➡️ Translator ➡️ Analyze text`
+- via Command Pallet, Ctrl+Shift+P (⌘Cmd+Shift+P in OSX) > Analyze text
+* to clear Analysis highlights use `Tools ➡️ Translator ➡️ Clear Analysis highlights`
+
 
 💡 Tips
 =======

@@ -1,0 +1,393 @@
+#
+# This is a non-breaking prefix list for the Ukrainian language.
+# The file is used for sentence tokenization (text -> sentence splitting).
+#
+# The file is home-made by a programmer (not a linguist) who doesn't even speak Ukrainian so it surely can be improved.
+#
+#
+# There could be quite a lot of Ukrainian abbreviations, see https://knmu.edu.ua/wp-content/uploads/2021/06/dstu3582_metr.pdf.
+#
+
+# Anything in this file, followed by a period (and an upper-case word), does NOT
+# indicate an end-of-sentence marker.
+# Special cases are included for prefixes that ONLY appear before 0-9 numbers.
+
+# Any single upper case letter followed by a period is not a sentence ender
+# (excluding I occasionally, but we leave it in).
+# Usually upper case letters are initials in a name.
+A
+B
+C
+D
+E
+F
+G
+H
+I
+J
+K
+L
+M
+N
+O
+P
+Q
+R
+S
+T
+U
+V
+W
+X
+Y
+Z
+
+# Usually upper case letters are initials in a name (Cyrillic alphabet)
+А
+Б
+В
+Г
+Ґ
+Д
+Е
+Є
+Ж
+З
+И
+І
+Ї
+Й
+К
+Л
+М
+Н
+О
+П
+Р
+С
+Т
+У
+Ф
+Х
+Ц
+Ч
+Ш
+Щ
+Ь
+Ю
+Я
+
+# Roman Numerals
+I
+II
+III
+IV
+V
+VI
+VII
+VIII
+IX
+X
+XI
+XII
+XIII
+XIV
+XV
+XVI
+XVII
+XVIII
+XIX
+XX
+
+# English -- but these work globally for all languages:
+Mr
+Mrs
+No
+pp
+St
+no
+Sr
+Jr
+Bros
+etc
+vs
+esp
+Fig
+fig
+Jan
+Feb
+Mar
+Apr
+Jun
+Jul
+Aug
+Sep
+Sept
+Oct
+Okt
+Nov
+Dec
+Ph.D
+PhD
+# in "et al."
+al
+cf
+Inc
+Ms
+Gen
+Sen
+Prof
+Dr
+Corp
+Co
+
+#List of English titles. These are often followed by upper-case names, but do not indicate sentence breaks
+Adj
+Adm
+Adv
+Asst
+Bart
+Bldg
+Brig
+Bros
+Capt
+Cmdr
+Col
+Comdr
+Con
+Corp
+Cpl
+DR
+Dr
+Drs
+Ens
+Gen
+Gov
+Hon
+Hr
+Hosp
+Insp
+Lt
+MM
+MR
+MRS
+MS
+Maj
+Messrs
+Mlle
+Mme
+Mr
+Mrs
+Ms
+Msgr
+Op
+Ord
+Pfc
+Ph
+Prof
+Pvt
+Rep
+Reps
+Res
+Rev
+Rt
+Sen
+Sens
+Sfc
+Sgt
+Sr
+St
+Supt
+Surg
+
+# English misc - odd period-ending items that NEVER indicate breaks (p.m. does NOT fall into this category - it sometimes ends a sentence)
+v
+vs
+i.e
+rev
+e.g
+
+# http://en.wiktionary.org/wiki/Category:Ukrainian_abbreviations
+а/с
+а. с
+авт
+адм
+адмін
+акад
+амер
+англ
+арк
+арт
+AT
+б
+б. д
+б. м
+б. р
+б. ц
+б-ка
+б-р
+ББК
+безкошт
+безпл
+буд
+в
+в. о
+в т. ч
+вид-во
+вищ
+від
+вкл
+включ
+внутр
+вул
+г
+газ
+ген
+гір
+гл
+год
+голов
+госп
+грн
+Д
+д-р
+деп
+держ
+див
+дир
+діагр
+до н. е
+дод
+док
+доц
+євр
+з-д
+з-ця
+зав
+заг
+зам
+зах
+ЗНО
+зобр
+зх
+і т. д
+і т. ін
+ілюстр
+ім
+ін-т
+ін-ти
+інв
+інд
+К
+к
+каб
+карт
+кв
+кл
+кн
+ком
+коп
+КПРС
+Л
+лаб
+літ
+М
+м
+М-во
+м. б
+м.б
+мал
+мат
+мед
+мех
+мін
+міс
+млн
+млрд
+мол
+МП
+напр
+нар
+наст
+НАТО
+нац
+НДІ
+НТІ
+О
+о
+о-в
+обл
+од
+оз
+окр
+опубл
+орг
+п
+п/с
+пд
+півд
+півн
+пл
+пн
+пом
+ПП
+пр
+пров
+просп
+проф
+р
+рр
+р-н
+ред
+розд
+с
+с.-г
+св
+см
+смт
+соц
+СП
+ст
+сх
+т
+Т
+т. ін
+т.ін
+т. с
+т.с
+т.зв
+та ін
+тел
+техн
+тис
+ТО
+ТОВ
+у. о
+у т.ч
+укр
+ун-т
+ун-ти
+унів
+упр
+ф-ка
+ф-т
+фіз
+філ
+фін
+Х
+хв
+хім
+церк
+ч
+чис
+шк
+
+#Numbers only. These should only induce breaks when followed by a numeric sequence
+# add NUMERIC_ONLY after the word for this function
+#This case is mostly for the english "No." which can either be a sentence of its own, or
+#if followed by a number, a non-breaking prefix
+No #NUMERIC_ONLY# 
+Nos
+Art #NUMERIC_ONLY#
+Nr
+pp #NUMERIC_ONLY#

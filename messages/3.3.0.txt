@@ -1,0 +1,60 @@
+Translator Plugin (multi-engine) for SublimeText 3 & 4
+======================================================
+
+**Version:** 3.3.0 
+
+Thank you for using my package!
+-------------------------------
+
+# Translator 3.3.0 Changelog
+
+Your _Translator_ plugin has been updated. Enjoy new version.
+
+## New Features and Improvements
+
+* 2 new commands 
+- **Analyze text** - to see text statistics, readability checks and highlights
+- **Clear Analysis highlights** - to clear text analysis highlights
+
+* improved behaviour while inserting translation from clipboard without selection (quotes, brackets, parenteces aware)
+
+💡 If you want to **check Readability**, select some text and run **Analyze text** command. 
+You can do it in 3 ways:
+- via binding and using hotkey **Ctrl+Alt+A** (⌘Cmd+Alt+A in OSX)
+- via `Tools ➡️ Translator ➡️ Analyze text`
+- via Command Pallet, Ctrl+Shift+P (⌘Cmd+Shift+P in OSX) > Analyze text
+* to clear Analysis highlights use `Tools ➡️ Translator ➡️ Clear Analysis highlights`
+
+
+## 🧰 Settings
+
+via Preferences ➡️ Package settings ➡️ Translator ➡️ Settings
+
+	{
+	    "engine": "google",           // "google", "bing", 'googlehk' for google.com.hk 
+		"source_language": "",        // Leave empty for Auto detection
+	    "target_language": "en",      // ! Must be specified	
+	    "results_mode": "insert",     // "insert", "replace" or "to_buffer" 
+	    "show_popup": false,          // false or true 
+	    "replace_linebreaks": false,  // false or true 
+	    "linebreak_replacement": " ", // could be a space, comma, semicolon, etc
+	    "analysis_language": "en"     // Language for Text Analysis: "en", "uk"
+	}
+
+
+## 💡 Tips
+
+If translation works not as you expected, check your language code / errors in console:
+
+* select `Tools ➡️ Translator ➡️ Print supported languages to console`
+* press `Ctrl + ~` to see output errors/warnings in console
+
+## Support
+
+* Your issues, feedback and suggestions regarding Translator plugin are welcome, feel free to report here https://github.com/dmytrovoytko/SublimeText-Translate/issues
+
+* It's #Hacktoberfest time - you're welcome to contribute to this open source project!
+
+* Made with ❤️ in Ukraine 🇺🇦 Dmytro Voytko https://github.com/dmytrovoytko/
+
+If you find Translator package helpful, please ⭐️star⭐️ my repo https://github.com/dmytrovoytko/SublimeText-Translate/ to help other people discover it 🙏

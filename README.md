@@ -1,13 +1,15 @@
 [![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner2-direct.svg)](https://stand-with-ukraine.pp.ua)
+[![Support Ukraine](https://img.shields.io/badge/Support-Ukraine-FFD500?style=flat&labelColor=005BBB)](https://war.ukraine.ua/support-ukraine/) [![Downloads](https://img.shields.io/packagecontrol/dt/Translator)](https://packagecontrol.io/packages/Translator) ![Maintenance](https://img.shields.io/maintenance/yes/2023?style=flat-square)
+
 
 Translator Plugin (multi-engine) for SublimeText 3 & 4
 ======================================================
 
-**Version:** 3.2.0, **[Google] & [Bing] translate**, supported **133+** languages.
+**Version:** 3.3.0, **[Google] & [Bing] translate**, supported **133+** languages.
 
 This plugin uses a standard Google/Bing translate page results. It works fast! And as API keys are not required it makes plugin very easy to use. However it isn't 100% officially supported, so if Google/Bing change their URL schema it could break the plugin.
 
-This version includes Google & Bing translate, adding other translators is in development.
+This version includes Google & Bing translate, text readability analysis and statistics.
 
 🎯 Features:
 ------------
@@ -24,6 +26,7 @@ This version includes Google & Bing translate, adding other translators is in de
 * Ability to show translation in popup without changing original text
 * Ability to translate your clipboard / current word if no text selected
 * Ability to replace line breaks inside text while translating (with space, comma, etc), useful to translate .po files
+* Ability to analyze text readability and statistics (including Automated Readability Index, Coleman-Liau Index) to improve your documentation or SEO texts.
 
 ## 🚀 How to Use (easy)
 
@@ -31,18 +34,28 @@ This version includes Google & Bing translate, adding other translators is in de
 2. Run **Translate selected text** command. 
 You can do it in 3 ways:
 - via binding and using hotkey **Ctrl+Alt+G** (⌘Cmd+Alt+G in OSX)
-- via Tools ➡️ Translator ➡️ Translate seclected text
+- via `Tools ➡️ Translator ➡️ Translate seclected text`
 - via Command Pallet, Ctrl+Shift+P (⌘Cmd+Shift+P in OSX) > Translate selected text
 * you can also translate the text in your clipboard, or the current word if no text selected 
 3. If you want to change translation to inline mode (when translation replaces original selected text), change **results_mode** in settings.
 4. If you just want to see translation without changing your text, you can set **show_popup** in settings.
 5. If you want to translate by default to different than English language, change **target_language** in settings.
 
+💡 If you want to **check Readability**, select some text and run **Analyze text** command. 
+You can do it in 3 ways:
+- via binding and using hotkey **Ctrl+Alt+A** (⌘Cmd+Alt+A in OSX)
+- via `Tools ➡️ Translator ➡️ Analyze text`
+- via Command Pallet, Ctrl+Shift+P (⌘Cmd+Shift+P in OSX) > Analyze text
+* to clear clear Analysis highlights use `Tools ➡️ Translator ➡️ Clear Analysis highlights`
+
+
 ### 🛠️ Commands
 - **Translate selected text** - translates selected text based on your settings
 - **Translate selected to...** - you choose the target language before translation
 - **Translate clipboard** - translates text of your clipboard based on your settings
 - **Translator: Print supported languages to console** - to see available languages for changing translation settings
+- **Analyze text** - to see text statistics, readability checks and highlights
+- **Clear Analysis highlights** - to clear text analysis highlights
 
 ## Installation (via Package Control)
 
@@ -62,7 +75,8 @@ via Preferences ➡️ Package settings ➡️ Translator ➡️ Settings
         "results_mode": "insert",     // "insert", "replace" or "to_buffer" 
         "show_popup": false,          // false or true 
         "replace_linebreaks": false,  // false or true 
-        "linebreak_replacement": " "  // could be a space, comma, semicolon, etc
+        "linebreak_replacement": " ", // could be a space, comma, semicolon, etc
+        "analysis_language": "en"     // Language for Text Analysis: "en", "uk"
     }
 
 
@@ -89,3 +103,4 @@ Credits:
 
 * Inspired by old [Inline Google Translate](https://github.com/MTMGroup/SublimeText-Google-Translate-Plugin) package (by MTMGroup) that doesn't work since Google changed API.
 * Used [Bing translate API](https://github.com/plainheart/bing-translate-api) approach, 谢谢! 
+* Used [Sentence-splitter](https://github.com/mediacloud/sentence-splitter) for text analysis
