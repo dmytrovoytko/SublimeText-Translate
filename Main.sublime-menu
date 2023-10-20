@@ -14,7 +14,10 @@
                     { "command": "translator_to", "caption": "Translate selected to..." },
                     { "command": "translator_from_buffer", "caption": "Translate clipboard" },
                     { "caption": "-" },
-                    { "command": "translator_info", "caption": "Print supported languages to console" }
+                    { "command": "translator_info", "caption": "Print supported languages to console" },
+                    { "caption": "-" },
+                    { "command": "translator_text_analysis", "caption": "Analyze text: statistics and readability" },
+                    { "command": "translator_clear_analysis", "caption": "Clear Readability analysis highlights" }
                 ]
             }
         ]

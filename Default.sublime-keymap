@@ -1,5 +1,6 @@
 [
 //	{"keys": ["ctrl+alt+g"], "command": "translator"},
 //	{"keys": ["ctrl+shift+alt+g"], "command": "translator_to"},  
-//	{"keys": ["ctrl+alt+b"], "command": "translator_from_buffer"}  
+//	{"keys": ["ctrl+alt+b"], "command": "translator_from_buffer"},  
+//	{"keys": ["ctrl+alt+a"], "command": "translator_text_analysis"}  
 ]
