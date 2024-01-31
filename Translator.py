@@ -33,7 +33,7 @@ except Exception as e:
 from os.path import dirname, realpath
 PLUGINPATH = dirname(realpath(__file__))
 
-__version__ = "3.3.0"
+__version__ = "3.3.1"
 # 3.0.0 + Bing translate engine
 # 3.0.1 + show_popup option to see translation without changing the text
 # 3.0.2 + better error handling (unsuccessful requests)
@@ -42,7 +42,8 @@ __version__ = "3.3.0"
 # 3.2.0 + new command - translate clipboard
 #       + ability to replace line breaks inside text while translating (with space, comma, etc)
 # 3.3.0 + text statistics and readability checks
-#       + improved behaviour while inserting translation from clipboard without selection
+#       + improved behavior while inserting translation from clipboard without selection
+# 3.3.1 + cn.bing.com
 
 REGIONS_ON = False
 DEBUG_TEST = False
@@ -51,6 +52,7 @@ try:
 except Exception as e:
     # Used for quick translation test outside SublineText before updating the plugin 
     DEBUG_TEST = True
+    import traceback
 
 class TextAnalysis():
     def __init__(self, language='en', tokenization='simple'):
@@ -459,15 +461,16 @@ class Translate(object):
             'google':   'https://translate.googleapis.com/translate_a/single?client=gtx', #&ie=UTF-8&oe=UTF-8
             'googlehk': 'https://translate.google.com.hk/translate_a/single?client=gtx', #&ie=UTF-8&oe=UTF-8
             'bing':     'https://www.bing.com/ttranslatev3?isVertical=1', 
+            'bingcn':   'https://cn.bing.com/ttranslatev3?isVertical=1', 
         }
 
-        if not engine in ['google', 'googlehk', 'bing']:
+        if not engine in ['google', 'googlehk', 'bing', 'bingcn']:
             engine = 'google'
         self.engine = engine
         if not source_lang:
             if engine in ['google', 'googlehk']:
                 source_lang = 'auto'
-            elif engine == 'bing':
+            elif engine in ['bing', 'bingcn']:
                 source_lang = 'auto-detect'
             else: # TODO process autodetect/default for new engines
                 source_lang = 'auto'
@@ -482,7 +485,7 @@ class Translate(object):
         self.results_mode = results_mode
         self.show_popup = show_popup
         # extra initializations
-        if engine=='bing':
+        if engine in ['bing', 'bingcn']:
             self.session = self._get_bing_session()
 
     @property
@@ -499,7 +502,7 @@ class Translate(object):
                         if _locations:
                             _data = sublime.load_resource(_locations[0])                    
                     _languages = json.loads(_data, object_pairs_hook=OrderedDict)
-                elif self.engine == 'bing':
+                elif self.engine in ['bing', 'bingcn']:
                     if DEBUG_TEST: # outside Sublime
                         with open(PLUGINPATH+'/bing_languages.json') as f:
                           _data = f.read()
@@ -542,12 +545,14 @@ class Translate(object):
     # https://www.microsoft.com/en-us/translator/languages/
     def _get_bing_session(self):
         session = requests.Session()
+        API_URL = self.api_urls[self.engine]
+        session_url = 'https://www.bing.com/translator' if self.engine=='bing' else 'https://cn.bing.com/translator'
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
-            'Referer': 'https://www.bing.com/translator'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Referer': session_url
         }
         session.headers.update(headers)
-        _response = session.get('https://www.bing.com/translator')
+        _response = session.get(session_url)
         _pattern = re.compile(r'params_AbusePreventionHelper\s*=\s*(\[.*?\]);', re.DOTALL)
         _match = _pattern.search(_response.text)
         if _match:
@@ -571,7 +576,14 @@ class Translate(object):
         _url  = "{0}&IG={1}&IID=translator.{2}.{3}".format(API_URL, self.session.headers.get("IG"), random.randint(5019, 5026), random.randint(1, 3))
         _data = {'': '', 'fromLang': source_lang, 'to': target_lang, 'text': _text, 'token': self.session.headers.get('token'), 'key': self.session.headers.get('key')}
         try:
-            response = self.session.post(_url, data=_data).json()
+            _r = self.session.post(_url, data=_data)
+            if self.engine=='bingcn':
+                print(' Session _url: {}'.format(_url))
+                print(' Session _r.status_code: {}'.format(_r.status_code))
+                print(' Session _r.text: {}'.format(_r.text))
+            if _r.text=='':
+                print(' Something is wrong with cn.bing.com request/response. Please try switching to google.')
+            response = _r.json()
             if type(response) is dict:
                 if 'ShowCaptcha' in response.keys():
                     self.session = self._get_bing_session()
@@ -584,13 +596,23 @@ class Translate(object):
             else:
                 return response[0]['translations'][0]['text']
         except Exception as e:
-            print("Bing translate error: {}".format(e))
+            if DEBUG_TEST:
+                print("Bing translate error: {} {}".format(e, traceback.format_exc()))
+                # tb = sys.exc_info()
+                # print(e.with_traceback(tb[2]))
+                # print("Bing translate error sys: {} {}".format(e,e.with_traceback(sys.exc_info()[2])))
+                # if len(e.args) >= 1:
+                #     e.args = (e.args[0] + ' happens',) + e.args[1:]
+                # print("Bing translate error: {}".format(e.args))
+                # raise  
+            else:
+                print("Bing translate error: {}".format(e))
             return 'Bing translate error'
 
     def translate(self, text, source_lang='', target_lang=''):
         if self.engine in ['google', 'googlehk']:
             return self.GoogleTranslate(text, source_lang, target_lang)
-        elif self.engine == 'bing':
+        elif self.engine in ['bing', 'bingcn']:
             return self.BingTranslate(text, source_lang, target_lang)
         else: # TODO update with new engines
             return "[{}] is not supported yet. Change engine in settings.".format(self.engine)
@@ -599,46 +621,47 @@ class Translate(object):
 ## works outside SublimeText where sublime modules not available 
 if __name__ == "__main__":
 
-    test_text = """Hey aaa@bbb.com! Can you do me a quick favor?
-                If you get this cheat sheet after clicking on the download button, respond to this email with the words "Got the cheat sheet!" 
-                That's how I know things are working fine here.
-                Talk to you soon!
-                P.S. If you have any questions, feel free to ask me on LinkedIn, Twitter, or Discord (those are the places where I'm more active)."""
-    analysis = TextAnalysis()
-    print('Example #1')
-    print(analysis.calculate_scores(test_text, debug=DEBUG_TEST))
+    # test_text = """Hey aaa@bbb.com! Can you do me a quick favor?
+    #             If you get this cheat sheet after clicking on the download button, respond to this email with the words "Got the cheat sheet!" 
+    #             That's how I know things are working fine here.
+    #             Talk to you soon!
+    #             P.S. If you have any questions, feel free to ask me on LinkedIn, Twitter, or Discord (those are the places where I'm more active)."""
+    # analysis = TextAnalysis()
+    # print('Example #1')
+    # print(analysis.calculate_scores(test_text, debug=DEBUG_TEST))
     # exit()
 
-    try:
-        print('\nGoogle translate test')
-        translate = Translate('google', 'uk', 'en')
-        langs = translate.langs
-        print(translate.translate('Слава Україні!'))
+    # try:
+    #     print('\nGoogle translate test')
+    #     translate = Translate('google', 'uk', 'en')
+    #     langs = translate.langs
+    #     print(translate.translate('Слава Україні!'))
 
-        print('\nGoogle translate HK test')
-        translate = Translate('googlehk', 'uk', 'en')
-        langs = translate.langs
-        print(translate.translate('Слава Україні!'))
-    except Exception as e:
-        print('GoogleTranslate error: {}'.format(e))
+    #     print('\nGoogle translate HK test')
+    #     translate = Translate('googlehk', 'uk', 'en')
+    #     langs = translate.langs
+    #     print(translate.translate('Слава Україні!'))
+    # except Exception as e:
+    #     print('GoogleTranslate error: {}'.format(e))
 
     try:
-        print('\nBing translation test')
-        translate = Translate('bing', 'uk', 'en')
+        print('\nBingCN translation test')
+        translate = Translate('bingcn', 'uk', 'en')
         langs = translate.langs
         print(translate.translate('Слава Україні!'))
     except Exception as e:
         print('BingTranslate error: {}'.format(e))
+    exit()
 
     print('\nChinese translation test...')
     wyw_text = '季姬寂，集鸡，鸡即棘鸡。棘鸡饥叽，季姬及箕稷济鸡。'
     eng_text = '7 most powerful benefits of journaling.'
     try:
-        translate = Translate('googlehk', '', 'uk')
+        translate = Translate('bingcn', '', 'uk')
         print(translate.translate(wyw_text))
         print(translate.translate(eng_text, 'en', 'zh-CN'))
     except Exception as e:
-        print('GoogleTranslate error: {}'.format(e))
+        print('BingCNTranslate error: {}'.format(e))
     try:
         translate = Translate('bing', '', 'uk')
         print(translate.translate(wyw_text))
