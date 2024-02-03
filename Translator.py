@@ -448,6 +448,572 @@ class TextAnalysis():
 
         return scores, stats
 
+
+## <<< This part is adapted from https://pypi.org/project/translators/ by UlionTse (5.7.3)
+##  Some code parts are commented/changed to make it work in Sublime's Python 3.3
+
+from typing import Union, Tuple, List
+LangMapKwargsType = Union[str, bool]
+ApiKwargsType = Union[str, int, float, bool, dict]
+
+class TranslatorError(Exception):
+    pass
+
+class TranslatorsServer:
+    def __init__(self):
+        self.server_region = '' #GuestSeverRegion().get_server_region
+        self._alibaba = AlibabaV2()
+        # self._deepl = Deepl()
+        # self.deepl = self._deepl.deepl_api
+        self.alibaba = self._alibaba.alibaba_api
+        self._sogou = Sogou()
+        self.sogou = self._sogou.sogou_api
+        self._translateCom = TranslateCom()
+        self.translateCom = self._translateCom.translateCom_api
+        self.translators_dict = {
+            'translateCom': self.translateCom, 
+            'alibaba': self.alibaba, 
+            'sogou': self.sogou,
+            # 'deepl': self.deepl, 
+        }
+        self.translators_pool = list(self.translators_dict.keys())
+
+    def translate_text(self,
+                       query_text: str,
+                       translator: str = 'sogou',
+                       from_language: str = 'auto',
+                       to_language: str = 'en',
+                       **kwargs
+                       ): # -> Union[str, dict]:
+        """
+        :param query_text: str, must.
+        :param translator: str, default 'bing'.
+        :param from_language: str, default 'auto'.
+        :param to_language: str, default 'en'.
+        :param **kwargs:
+                :param is_detail_result: boolean, default False.
+                :param professional_field: str, support baidu(), caiyun(), alibaba() only.
+                :param timeout: float, default None.
+                :param proxies: dict, default None.
+                :param sleep_seconds: float, default `random.random()`.
+                :param update_session_after_seconds: float, default 1500.
+                :param if_use_cn_host: bool, default False.
+                :param reset_host_url: str, default None.
+                :param if_ignore_empty_query: boolean, default False.
+                :param if_ignore_limit_of_length: boolean, default False.
+                :param limit_of_length: int, default 5000.
+                :param if_show_time_stat: boolean, default False.
+                :param show_time_stat_precision: int, default 4.
+                :param lingvanex_model: str, default 'B2C'.
+        :return: str or dict
+        """
+
+        if translator not in self.translators_pool:
+            raise TranslatorError("Unsupported translator: {}".format(translator))
+        return self.translators_dict[translator](query_text=query_text, from_language=from_language, to_language=to_language, **kwargs)
+
+    def translate_html(self,
+                       html_text: str,
+                       translator: str = 'sogou',
+                       from_language: str = 'auto',
+                       to_language: str = 'en',
+                       n_jobs: int = -1,
+                       **kwargs
+                       ) -> str:
+        """
+        Translate the displayed content of html without changing the html structure.
+        :param html_text: str, must.
+        :param translator: str, default 'bing'.
+        :param from_language: str, default 'auto'.
+        :param to_language: str, default 'en'.
+        :param n_jobs: int, default -1, means os.cpu_cnt().
+        :param **kwargs:
+                :param is_detail_result: boolean, default False.
+                :param professional_field: str, support baidu(), caiyun(), alibaba() only.
+                :param timeout: float, default None.
+                :param proxies: dict, default None.
+                :param sleep_seconds: float, default `random.random()`.
+                :param update_session_after_seconds: float, default 1500.
+                :param if_use_cn_host: bool, default False.
+                :param reset_host_url: str, default None.
+                :param if_ignore_empty_query: boolean, default False.
+                :param if_ignore_limit_of_length: boolean, default False.
+                :param limit_of_length: int, default 5000.
+                :param if_show_time_stat: boolean, default False.
+                :param show_time_stat_precision: int, default 4.
+                :param lingvanex_model: str, default 'B2C'.
+        :return: str
+        """
+
+        if translator not in self.translators_pool: 
+            raise TranslatorError("Unsupported translator: {}".format(translator))
+        elif kwargs.get('is_detail_result', False):
+            raise TranslatorError("Problem getting result.")
+
+        if not kwargs.get('sleep_seconds', None):
+            kwargs.update({'sleep_seconds': 0})
+
+        n_jobs = os.cpu_count() if n_jobs <= 0 else n_jobs
+        _ts = self.translators_dict[translator]
+
+        pattern = re.compile(r"(?:^|(?<=>))([\s\S]*?)(?:(?=<)|$)")  # TODO: <code></code> <div class="codetext notranslate">
+        sentence_list = list(set(pattern.findall(html_text)))
+        _map_translate_func = lambda sentence: (sentence, _ts(query_text=sentence, from_language=from_language, to_language=to_language, **kwargs))
+
+        with pathos.multiprocessing.ProcessPool(n_jobs) as pool:
+            result_list = pool.map(_map_translate_func, sentence_list)
+
+        result_dict = {text: ts_text for text, ts_text in result_list}
+        _get_result_func = lambda k: result_dict.get(k.group(1), '')
+        return pattern.sub(repl=_get_result_func, string=html_text)
+
+class Tse:
+    def __init__(self):
+        self.author = 'Ulion.Tse'
+        self.begin_time = time.time()
+        self.default_session_freq = int(1e3)
+        self.default_session_seconds = 1.5e3
+        self.transform_en_translator_pool = ('Itranslate', 'Lingvanex',)
+        self.auto_pool = ('auto', 'auto-detect',)
+        self.zh_pool = ('zh', 'zh-CN', 'zh-CHS', 'zh-Hans', 'zh-Hans_CN', 'cn', 'chi',)
+
+    @staticmethod
+    def time_stat(func):
+        @functools.wraps(func)
+        def _wrapper(*args, **kwargs):
+            if_show_time_stat = kwargs.get('if_show_time_stat', False)
+            show_time_stat_precision = kwargs.get('show_time_stat_precision', 4)
+            sleep_seconds = kwargs.get('sleep_seconds', None)
+
+            if if_show_time_stat and sleep_seconds is None:
+                raise TranslatorError('Uncertainty of measurement! Please specify parameter [sleep_seconds].')
+
+            if if_show_time_stat and sleep_seconds >= 0:
+                t1 = time.time()
+                result = func(*args, **kwargs)
+                t2 = time.time()
+                cost_time = round((t2 - t1 - sleep_seconds), show_time_stat_precision)
+                # sys.stderr.write('CostTime(function: {}): {}s\n'.format(func.__name__[:-4], cost_time))
+                warnings.warn('CostTime(function: {}): {}s\n'.format(func.__name__[:-4], cost_time))
+                return result
+            return func(*args, **kwargs)
+        return _wrapper
+
+    @staticmethod
+    def get_headers(host_url: str,
+                    if_api: bool = False,
+                    if_referer_for_host: bool = True,
+                    if_ajax_for_api: bool = True,
+                    if_json_for_api: bool = False,
+                    if_multipart_for_api: bool = False
+                    ) -> dict:
+
+        user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36"
+        url_path = parse.urlparse(host_url).path # urllib.
+        host_headers = {
+            'Referer' if if_referer_for_host else 'Host': host_url,
+            "User-Agent": user_agent,
+        }
+        api_headers = {
+            'Origin': host_url.split(url_path)[0] if url_path else host_url,
+            'Referer': host_url,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            "User-Agent": user_agent,
+        }
+        if if_api and not if_ajax_for_api:
+            api_headers.pop('X-Requested-With')
+            api_headers.update({'Content-Type': 'text/plain'})
+        if if_api and if_json_for_api:
+            api_headers.update({'Content-Type': 'application/json'})
+        if if_api and if_multipart_for_api:
+            api_headers.pop('Content-Type')
+        return host_headers if not if_api else api_headers
+
+    def check_en_lang(self, from_lang: str, to_lang: str, default_translator: str = None, default_lang: str = 'en-US'):
+        if default_translator in self.transform_en_translator_pool:
+            from_lang = default_lang if from_lang == 'en' else from_lang
+            to_lang = default_lang if to_lang == 'en' else to_lang
+            from_lang = default_lang.replace('-', '_') if default_translator == 'Lingvanex' and from_lang[:3] == 'en-' else from_lang
+            to_lang = default_lang.replace('-', '_') if default_translator == 'Lingvanex' and to_lang[:3] == 'en-' else to_lang
+        return from_lang, to_lang
+
+    def check_language(self,
+                       from_language: str,
+                       to_language: str,
+                       language_map: dict,
+                       output_auto: str = 'auto',
+                       output_zh: str = 'zh',
+                       output_en_translator: str = None,
+                       output_en: str = 'en-US'
+                       ): # -> Tuple[str, str]:
+
+        if output_en_translator:
+            from_language, to_language = self.check_en_lang(from_language, to_language, output_en_translator, output_en)
+
+        from_language = output_auto if from_language in self.auto_pool else from_language
+        from_language = output_zh if from_language in self.zh_pool else from_language
+        to_language = output_zh if to_language in self.zh_pool else to_language
+
+        if from_language != output_auto and from_language not in language_map:
+            raise TranslatorError('Unsupported from_language[{}] in {}.'.format(from_language, sorted(language_map.keys())))
+        elif to_language not in language_map:
+            raise TranslatorError('Unsupported to_language[{}] in {}.'.format(to_language, sorted(language_map.keys())))
+        elif from_language != output_auto and to_language not in language_map[from_language]:
+            raise TranslatorError('Unsupported translation: from [{0}] to [{1}]!'.format(from_language, to_language))
+        elif from_language == to_language:
+            raise TranslatorError('from_language[{from_language}] and to_language[{to_language}] should not be same.'.format(from_language,to_language))
+        return from_language, to_language
+
+    @staticmethod
+    def debug_language_map(func):
+        def make_temp_language_map(from_language: str, to_language: str) -> dict:
+            if not (to_language != 'auto' and from_language != to_language):
+                raise TranslatorError('Unsupported translation: from [{0}] to [{1}]!'.format(from_language, to_language))
+            lang_list = [from_language, to_language]
+            auto_lang_dict = {from_language: [to_language], to_language: [to_language]}
+            return {}.fromkeys(lang_list, lang_list) if from_language != 'auto' else auto_lang_dict
+
+        @functools.wraps(func)
+        def _wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                #warnings.warn(str(e))
+                raise TranslatorError(str(e))
+                return make_temp_language_map(kwargs.get('from_language'), kwargs.get('to_language'))
+        return _wrapper
+
+    @staticmethod
+    def check_query(func):
+        def check_query_text(query_text: str,
+                             if_ignore_empty_query: bool,
+                             if_ignore_limit_of_length: bool,
+                             limit_of_length: int
+                             ) -> str:
+
+            if not isinstance(query_text, str):
+                raise TranslatorError('Query text error: {}'.format(query_text))
+
+            query_text = query_text.strip()
+            qt_length = len(query_text)
+            if qt_length == 0 and not if_ignore_empty_query:
+                raise TranslatorError("The `query_text` can't be empty!")
+            if qt_length >= limit_of_length and not if_ignore_limit_of_length:
+                raise TranslatorError('The length of `query_text` exceeds the limit.')
+            else:
+                if qt_length >= limit_of_length:
+                    warnings.warn('The translation ignored the excess.')
+                    warnings.warn('The length of `query_text` is {qt_length}, above {limit_of_length}.'.format(qt_length,limit_of_length))
+                    return query_text[:limit_of_length - 1]
+            return query_text
+
+        @functools.wraps(func)
+        def _wrapper(*args, **kwargs):
+            if_ignore_empty_query = kwargs.get('if_ignore_empty_query', False)
+            if_ignore_limit_of_length = kwargs.get('if_ignore_limit_of_length', False)
+            limit_of_length = kwargs.get('limit_of_length', 5000)
+            is_detail_result = kwargs.get('is_detail_result', False)
+
+            query_text = list(args)[1] if len(args) >= 2 else kwargs.get('query_text')
+            query_text = check_query_text(query_text, if_ignore_empty_query, if_ignore_limit_of_length, limit_of_length)
+            if not query_text and if_ignore_empty_query:
+                return {'data': query_text} if is_detail_result else query_text
+
+            if len(args) >= 2:
+                new_args = list(args)
+                new_args[1] = query_text
+                return func(*tuple(new_args), **kwargs)
+            # return func(*args, **{**kwargs, **{'query_text': query_text}})
+            # ^^^ doesn't work in Python 3.3 - workaround
+            # print("!!! Warning ** {} {} {}".format(len(args), str(args), str(kwargs)))
+            if not kwargs.get('query_text'):
+                kwargs['query_text'] = query_text    
+                # print('kwargs query_text set.')
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                #warnings.warn(str(e))
+                raise TranslatorError(str(e))
+        return _wrapper
+
+    @staticmethod
+    def check_input_limit(query_text: str, input_limit: int) -> None:
+        if len(query_text) > input_limit:
+            raise TranslatorError
+
+class AlibabaV2(Tse):
+    def __init__(self):
+        super().__init__()
+        self.host_url = 'https://translate.alibaba.com'
+        self.api_url = 'https://translate.alibaba.com/api/translate/text'
+        self.csrf_url = 'https://translate.alibaba.com/api/translate/csrftoken'
+        self.get_language_pattern = '//lang.alicdn.com/mcms/translation-open-portal/(.*?)/translation-open-portal_interface.json'
+        self.get_language_url = None
+        self.host_headers = self.get_headers(self.host_url, if_api=False)
+        self.api_headers = self.get_headers(self.host_url, if_api=True, if_ajax_for_api=False, if_multipart_for_api=True)
+        self.language_map = None
+        self.detail_language_map = None
+        self.professional_field = ('general',)
+        self.csrf_token = None
+        self.session = None
+        self.query_count = 0
+        self.output_zh = 'zh'
+        self.input_limit = 5000
+
+    @Tse.debug_language_map
+    def get_language_map(self, lang_html, **kwargs):
+        lang_paragraph = re.compile('"en_US":{(.*?)},"zh_CN":{').search(lang_html).group().replace('",', '",\n')
+        lang_items = re.compile('interface.(.*?)":"(.*?)"').findall(lang_paragraph)
+        _fn_filter = lambda k, v: 1 if (len(k) <= 3 or (len(k) == 5 and '-' in k)) and len(v.split(' ')) <= 2 else 0
+        lang_items = sorted([(k, v) for k, v in lang_items if _fn_filter(k, v)])
+        d_lang_map = {k: v for k, v in lang_items}
+        lang_list = list(d_lang_map.keys())
+        return {}.fromkeys(lang_list, lang_list)
+
+    def get_d_lang_map(self, lang_html):
+        lang_paragraph = re.compile('"en_US":{(.*?)},"zh_CN":{').search(lang_html).group().replace('",', '",\n')
+        lang_items = re.compile('interface.(.*?)":"(.*?)"').findall(lang_paragraph)
+        _fn_filter = lambda k, v: 1 if (len(k) <= 3 or (len(k) == 5 and '-' in k)) and len(v.split(' ')) <= 2 else 0
+        lang_items = sorted([(k, v) for k, v in lang_items if _fn_filter(k, v)])
+        return {k: v for k, v in lang_items}
+
+    @Tse.time_stat
+    @Tse.check_query
+    def alibaba_api(self, query_text: str, from_language: str = 'auto', to_language: str = 'en', **kwargs): # -> Union[str, dict]:
+        """
+        https://translate.alibaba.com
+        :param query_text: str, must.
+        :param from_language: str, default 'auto'.
+        :param to_language: str, default 'en'.
+        :param **kwargs:
+                :param timeout: float, default None.
+                :param proxies: dict, default None.
+                :param sleep_seconds: float, default `random.random()`.
+                :param is_detail_result: boolean, default False.
+                :param if_ignore_limit_of_length: boolean, default False.
+                :param limit_of_length: int, default 5000.
+                :param if_ignore_empty_query: boolean, default False.
+                :param update_session_after_seconds: float, default 1500.
+                :param if_show_time_stat: boolean, default False.
+                :param show_time_stat_precision: int, default 4.
+                :param professional_field: str, default 'message', choose from ("general",)
+        :return: str or dict
+        """
+
+        timeout = kwargs.get('timeout', None)
+        proxies = kwargs.get('proxies', None)
+        is_detail_result = kwargs.get('is_detail_result', False)
+        sleep_seconds = kwargs.get('sleep_seconds', random.random())
+        update_session_after_seconds = kwargs.get('update_session_after_seconds', self.default_session_seconds)
+
+        use_domain = kwargs.get('professional_field', 'general')
+        if use_domain not in self.professional_field:
+            raise TranslatorError('Unsupported domain: {}'.format(use_domain))
+
+        not_update_cond_time = 1 if time.time() - self.begin_time < update_session_after_seconds else 0
+        if not (self.session and not_update_cond_time and self.language_map and self.csrf_token):
+            self.session = requests.Session()
+            host_html = self.session.get(self.host_url, headers=self.host_headers, timeout=timeout, proxies=proxies).text
+            self.get_language_url = 'https:{}'.format(re.compile(self.get_language_pattern).search(host_html).group())
+            lang_html = self.session.get(self.get_language_url, headers=self.host_headers, timeout=timeout, proxies=proxies).text
+            self.language_map = self.get_language_map(lang_html, from_language=from_language, to_language=to_language)
+            self.detail_language_map = self.get_d_lang_map(lang_html)
+
+            _ = self.session.get(self.csrf_url, headers=self.host_headers, timeout=timeout, proxies=proxies)
+            self.csrf_token = self.session.get(self.csrf_url, headers=self.host_headers, timeout=timeout, proxies=proxies).json()
+            self.api_headers.update({self.csrf_token['headerName']: self.csrf_token['token']})
+
+        from_language, to_language = self.check_language(from_language, to_language, self.language_map, self.output_zh)
+        files_data = {
+            'query': (None, query_text),
+            'srcLang': (None, from_language),
+            'tgtLang': (None, to_language),
+            '_csrf': (None, self.csrf_token['token']),
+            'domain': (None, self.professional_field[0]),
+        }  # Content-Type: multipart/form-data
+        r = self.session.post(self.api_url, files=files_data, headers=self.api_headers, timeout=timeout, proxies=proxies)
+        r.raise_for_status()
+        data = r.json()
+        time.sleep(sleep_seconds)
+        self.query_count += 1
+        return data if is_detail_result else data['data']['translateText']
+
+class Sogou(Tse):
+    def __init__(self):
+        super().__init__()
+        self.host_url = 'https://fanyi.sogou.com'
+        self.api_url = 'https://fanyi.sogou.com/api/transpc/text/result'
+        self.get_language_old_url = 'https://search.sogoucdn.com/translate/pc/static/js/app.7016e0df.js'
+        self.get_language_pattern = '//search.sogoucdn.com/translate/pc/static/js/vendors.(.*?).js'
+        self.get_language_url = None
+        self.host_headers = self.get_headers(self.host_url, if_api=False)
+        self.api_headers = self.get_headers(self.host_url, if_api=True)
+        self.language_map = None
+        self.session = None
+        self.query_count = 0
+        self.output_zh = 'zh-CHS'
+        self.input_limit = 5000
+
+    @Tse.debug_language_map
+    def get_language_map(self, host_html, lang_old_url, ss, timeout, proxies, **kwargs):
+        try:
+            if not self.get_language_url:
+                lang_url_path = re.compile(self.get_language_pattern).search(host_html).group()
+                self.get_language_url = ''.join(['https:', lang_url_path])
+            lang_html = ss.get(self.get_language_url, headers=self.host_headers, timeout=timeout, proxies=proxies).text
+        except:
+            lang_html = ss.get(lang_old_url, headers=self.host_headers, timeout=timeout, proxies=proxies).text
+
+        lang_list = eval(re.compile('"ALL":\[(.*?)\]').search(lang_html).group().replace('!', '')[6:])
+        lang_list = [x['lang'] for x in lang_list]
+        return {}.fromkeys(lang_list, lang_list)
+
+    def get_form(self, query_text, from_language, to_language):
+        uuid = ''
+        for i in range(8):
+            uuid += hex(int(65536 * (1 + random.random())))[2:][1:]
+            if i in range(1, 5):
+                uuid += '-'
+        sign_text = "" + from_language + to_language + query_text + '109984457'  # window.__INITIAL_STATE__.common.CONFIG.secretCode
+        sign = hashlib.md5(sign_text.encode()).hexdigest()
+        form = {
+            "from": from_language,
+            "to": to_language,
+            "text": query_text,
+            "uuid": uuid,
+            "s": sign,
+            "client": "pc",  # wap
+            "fr": "browser_pc",  # browser_wap
+            "needQc": "1",
+        }
+        return form
+
+    @Tse.time_stat
+    @Tse.check_query
+    def sogou_api(self, query_text: str, from_language: str = 'auto', to_language: str = 'en', **kwargs): # -> Union[str, dict]:
+        """
+        https://fanyi.sogou.com
+        :param query_text: str, must.
+        :param from_language: str, default 'auto'.
+        :param to_language: str, default 'en'.
+        :param **kwargs:
+                :param timeout: float, default None.
+                :param proxies: dict, default None.
+                :param sleep_seconds: float, default `random.random()`.
+                :param is_detail_result: boolean, default False.
+                :param if_ignore_limit_of_length: boolean, default False.
+                :param limit_of_length: int, default 5000.
+                :param if_ignore_empty_query: boolean, default False.
+                :param update_session_after_seconds: float, default 1500.
+                :param if_show_time_stat: boolean, default False.
+                :param show_time_stat_precision: int, default 4.
+        :return: str or dict
+        """
+
+        timeout = kwargs.get('timeout', None)
+        proxies = kwargs.get('proxies', None)
+        is_detail_result = kwargs.get('is_detail_result', False)
+        sleep_seconds = kwargs.get('sleep_seconds', random.random())
+        update_session_after_seconds = kwargs.get('update_session_after_seconds', self.default_session_seconds)
+
+        not_update_cond_time = 1 if time.time() - self.begin_time < update_session_after_seconds else 0
+        if not (self.session and not_update_cond_time and self.language_map):
+            self.session = requests.Session()
+            host_html = self.session.get(self.host_url, headers=self.host_headers, timeout=timeout, proxies=proxies).text
+            self.language_map = self.get_language_map(host_html, self.get_language_old_url, self.session, timeout, proxies,
+                                                      from_language=from_language, to_language=to_language)
+
+        from_language, to_language = self.check_language(from_language, to_language, self.language_map, output_zh=self.output_zh)
+
+        form_data = self.get_form(query_text, from_language, to_language)
+        r = self.session.post(self.api_url, headers=self.api_headers, data=form_data, timeout=timeout, proxies=proxies)
+        r.raise_for_status()
+        data = r.json()
+        time.sleep(sleep_seconds)
+        self.query_count += 1
+        return data if is_detail_result else data['data']['translate']['dit']
+
+
+class TranslateCom(Tse):
+    def __init__(self):
+        super().__init__()
+        self.host_url = 'https://www.translate.com/machine-translation'
+        self.api_url = 'https://www.translate.com/translator/translate_mt'
+        self.lang_detect_url = 'https://www.translate.com/translator/ajax_lang_auto_detect'
+        self.language_url = 'https://www.translate.com/ajax/language/ht/all'
+        self.host_headers = self.get_headers(self.host_url, if_api=False)
+        self.api_headers = self.get_headers(self.host_url, if_api=True, if_json_for_api=False)
+        self.session = None
+        self.language_map = None
+        self.language_description = None
+        self.query_count = 0
+        self.output_zh = 'zh'
+        self.input_limit = 15000  # fifteen thousand letters left today.
+
+    @Tse.debug_language_map
+    def get_language_map(self, lang_desc, **kwargs):
+        return {item['code']: [it['code'] for it in item['availableTranslationLanguages']] for item in lang_desc}
+
+    @Tse.time_stat
+    @Tse.check_query
+    def translateCom_api(self, query_text: str, from_language: str = 'auto', to_language: str = 'en', **kwargs): # -> Union[str, dict]:
+        """
+        https://www.translate.com/machine-translation
+        :param query_text: str, must.
+        :param from_language: str, default 'auto'.
+        :param to_language: str, default 'en'.
+        :param **kwargs:
+                :param timeout: float, default None.
+                :param proxies: dict, default None.
+                :param sleep_seconds: float, default `random.random()`.
+                :param is_detail_result: boolean, default False.
+                :param if_ignore_limit_of_length: boolean, default False.
+                :param limit_of_length: int, default 5000.
+                :param if_ignore_empty_query: boolean, default False.
+                :param update_session_after_seconds: float, default 1500.
+                :param if_show_time_stat: boolean, default False.
+                :param show_time_stat_precision: int, default 4.
+        :return: str or dict
+        """
+
+        timeout = kwargs.get('timeout', None)
+        proxies = kwargs.get('proxies', None)
+        is_detail_result = kwargs.get('is_detail_result', False)
+        sleep_seconds = kwargs.get('sleep_seconds', random.random())
+        update_session_after_seconds = kwargs.get('update_session_after_seconds', self.default_session_seconds)
+
+        not_update_cond_time = 1 if time.time() - self.begin_time < update_session_after_seconds else 0
+        if not (self.session and not_update_cond_time and self.language_map and self.language_description):
+            self.session = requests.Session()
+            _ = self.session.get(self.host_url, headers=self.host_headers, timeout=timeout, proxies=proxies)
+            lang_r = self.session.get(self.language_url, headers=self.host_headers, timeout=timeout, proxies=proxies)
+            self.language_description = lang_r.json()
+            self.language_map = self.get_language_map(self.language_description, from_language=from_language, to_language=to_language)
+
+        if from_language == 'auto':
+            detect_form = {'text_to_translate': query_text}
+            r_detect = self.session.post(self.lang_detect_url, data=detect_form, headers=self.api_headers, timeout=timeout, proxies=proxies)
+            from_language = r_detect.json()['language']
+
+        from_language, to_language = self.check_language(from_language, to_language, self.language_map, output_zh=self.output_zh)
+
+        form_data = {
+            'text_to_translate': query_text,
+            'source_lang': from_language,
+            'translated_lang': to_language,
+            'use_cache_only': 'false',
+        }
+        r = self.session.post(self.api_url, data=form_data, headers=self.api_headers, timeout=timeout, proxies=proxies)
+        r.raise_for_status()
+        data = r.json()
+        time.sleep(sleep_seconds)
+        self.query_count += 1
+        return data if is_detail_result else data['translated_text']  # translation_source is microsoft, wtf!
+
+## ^^^ This part is adapted from https://pypi.org/project/translators/ by UlionTse
+
+
 class Translate(object):
     error_codes = {
         501: "ERR_SERVICE_NOT_AVAIBLE_TRY_AGAIN_OR_CHANGE_ENGINE",
@@ -644,30 +1210,52 @@ if __name__ == "__main__":
     # except Exception as e:
     #     print('GoogleTranslate error: {}'.format(e))
 
-    try:
-        print('\nBingCN translation test')
-        translate = Translate('bingcn', 'uk', 'en')
-        langs = translate.langs
-        print(translate.translate('Слава Україні!'))
-    except Exception as e:
-        print('BingTranslate error: {}'.format(e))
-    exit()
+    # try:
+    #     print('\nBingCN translation test')
+    #     translate = Translate('bingcn', 'uk', 'en')
+    #     langs = translate.langs
+    #     print(translate.translate('Слава Україні!'))
+    # except Exception as e:
+    #     print('BingTranslate error: {}'.format(e))
+    # exit()
 
     print('\nChinese translation test...')
     wyw_text = '季姬寂，集鸡，鸡即棘鸡。棘鸡饥叽，季姬及箕稷济鸡。'
     eng_text = '7 most powerful benefits of journaling.'
+    # try:
+    #     translate = Translate('bingcn', '', 'uk')
+    #     print(translate.translate(wyw_text))
+    #     print(translate.translate(eng_text, 'en', 'zh-CN'))
+    # except Exception as e:
+    #     print('BingCNTranslate error: {}'.format(e))
     try:
-        translate = Translate('bingcn', '', 'uk')
-        print(translate.translate(wyw_text))
-        print(translate.translate(eng_text, 'en', 'zh-CN'))
-    except Exception as e:
-        print('BingCNTranslate error: {}'.format(e))
-    try:
+        print('bing', '', 'uk')
         translate = Translate('bing', '', 'uk')
         print(translate.translate(wyw_text))
         print(translate.translate(eng_text, 'en', 'zh-Hans'))
     except Exception as e:
         print('BingTranslate error: {}'.format(e))
+
+    # testing new Translators
+    try:
+        tss = TranslatorsServer()
+        print("\n\nAvailable engines: {}".format(tss.translators_pool))
+        engine = 'translateCom'
+        text = eng_text
+        to_language='uk'
+        print("\nTest {}:\n {}".format(engine, tss.translate_text(text, translator=engine, to_language=to_language)))
+        engine = 'alibaba'
+        text = wyw_text
+        to_language='en'
+        print("\nTest {}:\n {}".format(engine, tss.translate_text(text, translator=engine, to_language=to_language)))
+        engine = 'sogou'
+        text = chs_text
+        to_language='en'
+        print("\nTest {}:\n {}".format(engine, tss.translate_text(text, translator=engine, to_language=to_language)))
+    except Exception as e:
+        print('{} translate error: {}'.format(engine, e))
+    #raise TranslatorError("test")
+
     # exit to prevent Sublime Plugin specific code errors - it works only inside Sublime
     exit()
 
@@ -721,12 +1309,16 @@ class translatorCommand(sublime_plugin.TextCommand):
                     return                          
                 else:
                     # result = translate.GoogleTranslate(selection, source_language, target_language)
-                    if engine in ['google','googlehk','bing']: 
+                    if engine in ['google','googlehk','bing','bingcn']: 
                         result = translate.translate(selection, source_language, target_language)
-                    # else: TODO process new engines
-                    #     tss = TranslatorsServer()
-                    #     # print("Available engines: {}\nCurrent engine: {}".format(tss.translators_pool, engine))
-                    #     result = tss.translate_text(selection, translator=engine, from_language=source_language, to_language=target_language)
+                    elif engine in ['translateCom','alibaba','sogou']: 
+                        tss = TranslatorsServer()
+                        # print("\nAvailable new engines: {}, current engines: {}".format(tss.translators_pool,engine))
+                        print("\nCurrent engine: {}".format(engine))
+                        result = tss.translate_text(selection, translator=engine, from_language=source_language, to_language=target_language)
+                    else: # TODO process new engines
+                        print("\nEngine {} is not supported/working yet.".format(engine))
+                        return
 
                 # print('result: {0}'.format(result))
                 results_mode = settings.get('results_mode')
@@ -836,7 +1428,7 @@ class translatorFromBufferCommand(sublime_plugin.TextCommand):
 
     def is_visible(self):
         settings = sublime.load_settings("Translator.sublime-settings")
-        if settings.get('engine') in ['google','googlehk','bing']: 
+        if settings.get('engine') in ['google','googlehk','bing','bingcn']: 
             return True
         # else: TODO process new engines
         return False
@@ -863,7 +1455,7 @@ class translatorInfoCommand(sublime_plugin.TextCommand):
         
     def is_visible(self):
         settings = sublime.load_settings("Translator.sublime-settings")
-        if settings.get('engine') in ['google','googlehk','bing']: 
+        if settings.get('engine') in ['google','googlehk','bing','bingcn']: 
             return True
         # else: TODO process new engines
         return False

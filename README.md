@@ -2,10 +2,10 @@
 [![Support Ukraine](https://img.shields.io/badge/Support-Ukraine-FFD500?style=flat&labelColor=005BBB)](https://war.ukraine.ua/support-ukraine/) [![Downloads](https://img.shields.io/packagecontrol/dt/Translator)](https://packagecontrol.io/packages/Translator) ![Maintenance](https://img.shields.io/maintenance/yes/2023?style=flat-square)
 
 
-Translator Plugin (multi-engine) for SublimeText 3 & 4
-======================================================
+Translator Plugin (multi-engine) for SublimeText 3/4
+====================================================
 
-**Version:** 3.3.0, **[Google] & [Bing] translate**, supported **133+** languages.
+**Version:** 3.3.1, **[Google] & [Bing] translate**, supported **133+** languages.
 
 This plugin uses a standard Google/Bing translate page results. It works fast! And as API keys are not required it makes plugin very easy to use. However it isn't 100% officially supported, so if Google/Bing change their URL schema it could break the plugin.
 
@@ -35,7 +35,7 @@ This version includes Google & Bing translate, text readability analysis and sta
 You can do it in 3 ways:
 - via binding and using hotkey **Ctrl+Alt+G** (⌘Cmd+Alt+G in OSX)
 - via `Tools ➡️ Translator ➡️ Translate seclected text`
-- via Command Pallet, Ctrl+Shift+P (⌘Cmd+Shift+P in OSX) > Translate selected text
+- via Command Pallet, Ctrl+Shift+P (⌘Cmd+Shift+P in OSX) > `Translate selected text`
 * you can also translate the text in your clipboard, or the current word if no text selected 
 3. If you want to change translation to inline mode (when translation replaces original selected text), change **results_mode** in settings.
 4. If you just want to see translation without changing your text, you can set **show_popup** in settings.
@@ -43,10 +43,10 @@ You can do it in 3 ways:
 
 💡 If you want to **check Readability**, select some text and run **Analyze text** command. 
 You can do it in 3 ways:
-- via binding and using hotkey **Ctrl+Alt+A** (⌘Cmd+Alt+A in OSX)
-- via `Tools ➡️ Translator ➡️ Analyze text`
-- via Command Pallet, Ctrl+Shift+P (⌘Cmd+Shift+P in OSX) > Analyze text
-* to clear clear Analysis highlights use `Tools ➡️ Translator ➡️ Clear Analysis highlights`
+* via binding and using hotkey **Ctrl+Alt+A** (⌘Cmd+Alt+A in OSX)
+* via `Tools ➡️ Translator ➡️ Analyze text`
+* via Command Pallet, Ctrl+Shift+P (⌘Cmd+Shift+P in OSX) > `Analyze text`
+- to clear Analysis highlights use `Tools ➡️ Translator ➡️ Clear Analysis highlights`
 
 
 ### 🛠️ Commands
@@ -69,7 +69,7 @@ You can do it in 3 ways:
 via Preferences ➡️ Package settings ➡️ Translator ➡️ Settings
 
     {
-        "engine": "google",           // "google", "bing", 'googlehk' for google.com.hk 
+        "engine": "google",           // "google", "bing", 'bingcn' for cn.bing.com, 'googlehk' for google.com.hk 
         "source_language": "",        // Leave empty for Auto detection
         "target_language": "en",      // ! Must be specified    
         "results_mode": "insert",     // "insert", "replace" or "to_buffer" 
