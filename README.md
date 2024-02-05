@@ -16,9 +16,10 @@ This version includes Google & Bing translate, text readability analysis and sta
 
 * 133+ languages supported 
 * SublimeText 3 & 4 supported
-* Autodetect of source language
+* Autodetect source language
 * Ability to specify source & target languages in settings
 * Ability to choose the target language in context menu
+* Works without VPN/proxies in China (choose 'bingcn' engine)
 * 3 work modes: 
     - **replace** selected text with translation, 
     - **insert** translation after it (default)

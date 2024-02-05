@@ -20,7 +20,7 @@ via Preferences ➡️ Package settings ➡️ Translator ➡️ Settings
 
 	{
 	    "engine": "google",           // "google", "bing", 'bingcn' for cn.bing.com, 'googlehk' for google.com.hk 
-		"source_language": "",        // Leave empty for Auto detection
+	    "source_language": "",        // Leave empty for Auto detection
 	    "target_language": "en",      // ! Must be specified	
 	    "results_mode": "insert",     // "insert", "replace" or "to_buffer" 
 	    "show_popup": false,          // false or true 
