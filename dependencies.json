@@ -1,7 +1,7 @@
 {
     "*": {
         "*": [
-            "requests", "regex", "enum", "typing"
+            "requests", "charset-normalizer", "idna", "urllib3", "regex", "enum", "typing"
         ]
     }
 }
