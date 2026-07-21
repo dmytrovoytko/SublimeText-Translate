@@ -1,0 +1,33 @@
+Translator Plugin (multi-engine) for SublimeText 3 & 4
+======================================================
+
+**Version:** 3.3.3
+
+Thank you for using my package!
+-------------------------------
+
+# Translator 3.3.3 Changelog
+
+Your _Translator_ plugin has been updated. Enjoy the new version.
+
+## Improvements
+
+* better error handling
+* cleaned old/unused code
+
+## 💡 Tips
+
+If translation works not as you expected, check your language code / errors in console:
+
+* select `Tools ➡️ Translator ➡️ Print supported languages to console`
+* press `Ctrl + ~` to see output errors/warnings in console
+
+## Support
+
+* Your issues, feedback and suggestions regarding Translator plugin are welcome, feel free to report here https://github.com/dmytrovoytko/SublimeText-Translate/issues
+
+* It's #Hacktoberfest time - you're welcome to contribute to this open source project!
+
+* Made with ❤️ in Ukraine 🇺🇦 Dmytro Voytko https://github.com/dmytrovoytko/
+
+If you find Translator package helpful, please ⭐️star⭐️ my repo https://github.com/dmytrovoytko/SublimeText-Translate/ to help other people discover it 🙏

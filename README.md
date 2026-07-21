@@ -1,11 +1,11 @@
 [![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner2-direct.svg)](https://stand-with-ukraine.pp.ua)
-[![Support Ukraine](https://img.shields.io/badge/Support-Ukraine-FFD500?style=flat&labelColor=005BBB)](https://war.ukraine.ua/support-ukraine/) [![Downloads](https://img.shields.io/packagecontrol/dt/Translator)](https://packagecontrol.io/packages/Translator) ![Maintenance](https://img.shields.io/maintenance/yes/2025?style=flat-square)
+[![Support Ukraine](https://img.shields.io/badge/Support-Ukraine-FFD500?style=flat&labelColor=005BBB)](https://war.ukraine.ua/support-ukraine/) [![Downloads](https://img.shields.io/packagecontrol/dt/Translator)](https://packagecontrol.io/packages/Translator) ![Maintenance](https://img.shields.io/maintenance/yes/2026?style=flat-square)
 
 
 Translator Plugin (multi-engine) for SublimeText 3/4
 ====================================================
 
-**Version:** 3.3.2, **[Google] & [Bing] translate**, supported **194+** languages.
+**Version:** 3.3.3, **[Google] & [Bing] translate**, supported **194+** languages.
 
 This plugin uses a standard Google/Bing translate page results. It works fast! And as API keys are not required it makes plugin very easy to use. However it isn't 100% officially supported, so if Google/Bing change their URL schema it could break the plugin.
 
