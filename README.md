@@ -35,7 +35,7 @@ This version includes Google & Bing translate, text readability analysis and sta
 2. Run **Translate selected text** command. 
 You can do it in 3 ways:
 - via binding and using hotkey **Ctrl+Alt+G** (⌘Cmd+Alt+G in OSX)
-- via `Tools ➡️ Translator ➡️ Translate seclected text`
+- via `Tools ➡️ Translator ➡️ Translate selected text`
 - via Command Pallet, Ctrl+Shift+P (⌘Cmd+Shift+P in OSX) > `Translate selected text`
 * you can also translate the text in your clipboard, or the current word if no text selected 
 3. If you want to change translation to inline mode (when translation replaces original selected text), change **results_mode** in settings.

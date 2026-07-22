@@ -39,7 +39,7 @@ Thank you for using my package!
 
 Select text:
 
-* select Tools ➡️ Translator ➡️ `Translate seclected text` 
+* select Tools ➡️ Translator ➡️ `Translate selected text` 
 *  or bind keys to use `Ctrl+Alt+G` 
 
 💡 Tips

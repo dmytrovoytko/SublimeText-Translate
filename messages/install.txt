@@ -43,7 +43,7 @@ Thank you for using my package!
 
 Select text (or put cursor on a word to translate), then:
 
-* select `Tools ➡️ Translator ➡️ Translate seclected text` 
+* select `Tools ➡️ Translator ➡️ Translate selected text` 
 *  or bind keys to use `Ctrl+Alt+G` 
 
 💡 If you want to **check Readability**, select some text and run **Analyze text** command. 
