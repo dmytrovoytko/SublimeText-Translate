@@ -16,7 +16,11 @@ import hashlib
 import functools
 import warnings
 
-import requests
+try:
+    import requests
+except ImportError as e:
+    requests = None
+    print("Module `requests` dependency didn't work! Look's like you need to restart Sublime Text.", e)
 
 try:
     import regex
@@ -26,12 +30,13 @@ except ImportError:
         import regex
         from sentence_splitter import SentenceSplitter
     except ImportError as e:
+        SentenceSplitter = None
         print("Module regex/sentence_splitter dependency didn't work! Look's like you need to restart Sublime Text.", e)
 
 from os.path import dirname, realpath
 PLUGINPATH = dirname(realpath(__file__))
 
-__version__ = "3.3.3"
+__version__ = "3.4.0"
 # 3.0.0 + Bing translate engine
 # 3.0.1 + show_popup option to see translation without changing the text
 # 3.0.2 + better error handling (unsuccessful requests)
@@ -44,6 +49,7 @@ __version__ = "3.3.3"
 # 3.3.1 + cn.bing.com
 # 3.3.2 + updated list of languages in google_languages.json, according to https://cloud.google.com/translate/docs/languages
 # 3.3.3 + better error handling, cleaned old/unused code
+# 3.4.0 + small edge case checks and guards; updated dependencies to support Python 3.14 on ST 4201+
 
 REGIONS_ON = False
 DEBUG_TEST = False
@@ -68,19 +74,31 @@ class TextAnalysis():
             self.vowels = 'аеиоуяюєії'+'ёэы'+'aeiouy' # extended with russian and english
         elif self.language == 'ru':
             self.vowels = 'аеиоуяюёэы'+'aeiouy'
+        else:
+            print('\n\n!', self.language, 'is not supported, only en, uk, ru. Will be processed as en.')
+            self.language = 'en'
+            self.vowels = 'aeiouy' # use English set
         print('\n\nText Analysis:', self.language, '' if DEBUG_TEST==False else self.vowels)
 
     def clean_text(self, text):
         """
         Removes Non-ASCII characters from text.
         """
+        if not text: 
+            return ''
         return str(text.encode().decode("utf-8", errors="ignore")) # ascii
 
     def sent_tokenize(self, text):
-        # extra simplified would be: return text.split('. ')
-        splitter = SentenceSplitter(language=self.language)
-        sentences = splitter.split(text=text)
-        return sentences
+        if SentenceSplitter is None:
+            # extra simplified
+            return text.split('. ')
+        try:
+            splitter = SentenceSplitter(language=self.language)
+            sentences = splitter.split(text=text)
+            return sentences
+        except Exception as e:
+            print("SentenceSplitter error ({}), fallback to simple split.".format(e))
+            return text.split('. ')
 
     def word_tokenize(self, text):
         return text.split(' ')
@@ -88,7 +106,9 @@ class TextAnalysis():
     def para_tokenize(self, text):
         return text.split('\n\n')
 
-    def count_syllables(self, word): #syllable_count
+    def count_syllables(self, word):
+        if not word:
+            return 0
         # dictionary = pyphen.Pyphen(lang="en_US")
         # hyphenated = dictionary.inserted(word)
         # return len(hyphenated.split("-"))
@@ -96,7 +116,6 @@ class TextAnalysis():
         # from nltk.corpus import cmudict
         # d = cmudict.dict()
         # return [len(list(y for y in x if y[-1].isdigit())) for x in d[word.lower()]]        
-        
         #referred from stackoverflow.com/questions/14541303/count-the-number-of-syllables-in-a-word
         count = 0
         vowels = self.vowels # 'aeiouy'
@@ -225,6 +244,8 @@ class TextAnalysis():
         Calculate Word count, Sentence count and recommended Sentence/Paragraph length 
         Annotations could be added by lines, or by paragraphs
         """
+        if not text:
+            return stats, check, []
         ## replacing multiple spaces (' ', '\t', '\n') with 1 space
         ## _text = re.sub(r"\s+", " ", text)
         # replacing multiple spaces (' ', '\t') + '\n' with 1 space, but not '\n\n' - it's a paragraph break
@@ -234,7 +255,7 @@ class TextAnalysis():
         if debug:
             print('Paragraphs:', para_count)
         if para_count == 0:
-            return stats, []
+            return stats, check, []
         p_warnings = paragraph_length_check(paragraphs, debug)
 
         _text = re.sub(r"[ \t]+", " ", _text)
@@ -347,10 +368,14 @@ class TextAnalysis():
 
     def Flesch_Kincaid_grade_level_score(self, total_sentences, total_words, total_syllables):
         """ Flesch-Kincaid Grade Level Score """
+        if total_sentences == 0 or total_words == 0:
+            return 0
         if self.language == 'en':
             grade_level_score = (0.39 * (total_words / total_sentences) + 11.8 * (total_syllables / total_words)) - 15.59
         elif self.language in ['uk', 'ru']:
             grade_level_score = (0.49 * (total_words / total_sentences) + 7.3 * (total_syllables / total_words)) - 16.59
+        else:
+            grade_level_score = 0 
         return grade_level_score
 
 
@@ -358,12 +383,17 @@ class TextAnalysis():
         """ Flesch Reading Ease Score Test (FRES)
         https://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_readability_tests#Flesch_Reading_Ease
         """
+        if total_sentences == 0 or total_words == 0:
+            return 0, "error: zero length"
         if self.language == 'en':
             fres = 206.835 - 1.015 * (total_words / total_sentences) - 84.6 * (total_syllables / total_words)
         elif self.language in ['uk', 'ru']:
             fres = 220.755 - 1.315 * (total_words / total_sentences) - 50.1 * (total_syllables / total_words)
             # Yoast for ru
             #fres = 206.835 - 1.3 * (total_words / total_sentences) - 60.1 * (total_syllables / total_words)
+        else:
+            return 0, "error: not supported language, only en, uk, ru"
+
         if fres <= 10:
             remark = "Extremely difficult to read. Best understood by university graduates."
         elif 10 < fres <= 30:
@@ -458,6 +488,8 @@ class Translate(object):
             'languages': None, 
         }
         self.api_urls = {
+            # 'google':   'https://translate.googleapis.com/translate_a/single?client=webapp', #&ie=UTF-8&oe=UTF-8
+            # 'googlehk': 'https://translate.google.com.hk/translate_a/single?client=webapp', #&ie=UTF-8&oe=UTF-8
             'google':   'https://translate.googleapis.com/translate_a/single?client=gtx', #&ie=UTF-8&oe=UTF-8
             'googlehk': 'https://translate.google.com.hk/translate_a/single?client=gtx', #&ie=UTF-8&oe=UTF-8
             'bing':     'https://www.bing.com/ttranslatev3?isVertical=1', 
@@ -494,22 +526,28 @@ class Translate(object):
             if not self.cache['languages'] and cache:
                 # TODO Update engine related languages list
                 if self.engine in ['google', 'googlehk']:
+                    _data = None
                     if DEBUG_TEST: # outside Sublime
-                        with open(PLUGINPATH+'/google_languages.json') as f:
+                        with open(PLUGINPATH+'/google_languages.json', encoding='utf-8') as f:
                           _data = f.read()
                     else: # inside Sublime
                         _locations = sublime.find_resources('google_languages.json')
                         if _locations:
-                            _data = sublime.load_resource(_locations[0])                    
+                            _data = sublime.load_resource(_locations[0])
+                    if _data == None:
+                        raise TranslatorError(self.error_codes[501])
                     _languages = json.loads(_data, object_pairs_hook=OrderedDict)
                 elif self.engine in ['bing', 'bingcn']:
+                    _data = None
                     if DEBUG_TEST: # outside Sublime
-                        with open(PLUGINPATH+'/bing_languages.json') as f:
+                        with open(PLUGINPATH+'/bing_languages.json', encoding='utf-8') as f:
                           _data = f.read()
                     else: # inside Sublime
                         _locations = sublime.find_resources('bing_languages.json')
                         if _locations:
-                            _data = sublime.load_resource(_locations[0])                    
+                            _data = sublime.load_resource(_locations[0])
+                    if _data == None:
+                        raise TranslatorError(self.error_codes[501])
                     _languages = json.loads(_data, object_pairs_hook=OrderedDict)
                 else:
                     _languages = ['Please, check engine website.']
@@ -526,13 +564,21 @@ class Translate(object):
             source_lang = self.source
         if not target_lang:
             target_lang = self.target
+        if not text:
+            return ''
+        if isinstance(text, bytes):
+            try:
+                text = text.decode("utf-8")
+            except Exception:
+                print("Google translate error: bytes input could not be decoded.")
+                return '!!Google translate error!!'
         API_URL = self.api_urls[self.engine]
-        _text = parse.quote(text.encode("utf-8"))
-        _url  = "{0}&sl={1}&tl={2}&dt=t&q={3}".format(API_URL, source_lang, target_lang, _text)
-        if DEBUG_TEST or DEBUG:
-            print('GoogleTranslate: sl {0}, tl {1}, url {2}'.format(source_lang, target_lang, _url))
         try:
-            _data = request.urlopen(_url).read()
+            _text = parse.quote(text.encode("utf-8"))
+            _url  = "{0}&sl={1}&tl={2}&dt=t&q={3}".format(API_URL, source_lang, target_lang, _text)
+            if DEBUG_TEST or DEBUG:
+                print(' GoogleTranslate: sl {0}, tl {1}, url {2}'.format(source_lang, target_lang, _url))
+            _data = request.urlopen(_url, timeout=15).read()
             _obj = json.loads(str(_data,'utf-8'))
             result = []
             for s in _obj[0]:
@@ -545,6 +591,9 @@ class Translate(object):
     # BingTranslator:
     # https://www.microsoft.com/en-us/translator/languages/
     def _get_bing_session(self):
+        if requests == None:
+            print("Bing translate: Error initializing Bing session: 'requests' import failed.")
+            return None
         session = requests.Session()
         API_URL = self.api_urls[self.engine]
         session_url = 'https://www.bing.com/translator' if self.engine=='bing' else 'https://cn.bing.com/translator'
@@ -579,12 +628,23 @@ class Translate(object):
             source_lang = self.source
         if not target_lang:
             target_lang = self.target
+        if not text:
+            return ''
+        if isinstance(text, bytes):
+            try:
+                text = text.decode("utf-8")
+            except Exception:
+                print("Bing translate error: bytes input could not be decoded.")
+                return '!!Bing translate error!!'
+        if getattr(self, 'session', None) is None:
+            print("Bing translate: session is not initialized.")
+            return '!!Bing translate error!!'
         API_URL = self.api_urls[self.engine]
         # TODO cut to 1000?
-        _text = text.encode("utf-8")
-        _url  = "{0}&IG={1}&IID=translator.{2}.{3}".format(API_URL, self.session.headers.get("IG"), random.randint(5019, 5026), random.randint(1, 3))
-        _data = {'': '', 'fromLang': source_lang, 'to': target_lang, 'text': _text, 'token': self.session.headers.get('token'), 'key': self.session.headers.get('key')}
         try:
+            _text = text.encode("utf-8")
+            _url  = "{0}&IG={1}&IID=translator.{2}.{3}".format(API_URL, self.session.headers.get("IG"), random.randint(5019, 5026), random.randint(1, 3))
+            _data = {'': '', 'fromLang': source_lang, 'to': target_lang, 'text': _text, 'token': self.session.headers.get('token'), 'key': self.session.headers.get('key')}
             _r = self.session.post(_url, data=_data)
             if DEBUG_TEST or DEBUG:
                 print(' Session _url: {}'.format(_url))
@@ -601,17 +661,17 @@ class Translate(object):
             if type(response) is dict:
                 if 'ShowCaptcha' in response.keys():
                     self.session = self._get_bing_session()
-                    return self.BingTranslate(_text, source_lang, target_lang)
+                    return self.BingTranslate(text, source_lang, target_lang)
                 elif 'statusCode' in response.keys():
                     if response['statusCode'] == 400:
-                        response['errorMessage'] = '1000 characters limit! You send {} characters.'.format(len(_text))
+                        response['errorMessage'] = '1000 characters limit! You send {} characters.'.format(len(text))
                 else:
                     return response['translations'][0]['text']
             else:
                 return response[0]['translations'][0]['text']
         except Exception as e:
             if DEBUG_TEST:
-                print("Bing translate error: {} {}".format(e, traceback.format_exc()))
+                print(" Bing translate error: {} {}".format(e, traceback.format_exc()))
                 # tb = sys.exc_info()
                 # print(e.with_traceback(tb[2]))
                 # print("Bing translate error sys: {} {}".format(e,e.with_traceback(sys.exc_info()[2])))
@@ -709,14 +769,13 @@ import sublime, sublime_plugin
 settings = sublime.load_settings("Translator.sublime-settings")
 
 class TranslatorError(Exception):
-    sublime.status_message('Translation error. Check console.')
     def __init__(self, exception):
+        sublime.status_message('Translation error. Check console.')
         _e = str(exception)[:200].split("\n")[0]
         print('---\nTranslator error: {}\n---'.format(_e))
         sublime.active_window().run_command("show_panel", {"panel": "console"})
 
 class translatorCommand(sublime_plugin.TextCommand):
-
     def run(self, edit, source_language='', target_language='', source_text=''):
         settings = sublime.load_settings("Translator.sublime-settings")
         engine = settings.get('engine')
@@ -724,9 +783,8 @@ class translatorCommand(sublime_plugin.TextCommand):
             source_language = settings.get("source_language")
         if not target_language:
             target_language = settings.get("target_language")
-
         if DEBUG:
-            print('engine: {0}, source_language {1}, target_language {2}'.format(engine, source_language, target_language))
+            print('(DEBUG) engine: {0}, source_language {1}, target_language {2}'.format(engine, source_language, target_language))
 
         translator = Translate(engine=engine, source_lang=source_language, target_lang=target_language)
 
@@ -735,15 +793,15 @@ class translatorCommand(sublime_plugin.TextCommand):
             if source_text=='buffer':
                 selection = sublime.get_clipboard(10000).strip() # limit to prevent issues
                 if DEBUG:
-                    print('Clipboard selection: {0} {1}'.format(selection, region))
+                    print(' Clipboard selection: {0} {1}'.format(selection, region))
             elif not region.empty(): # some text selected
                 selection = v.substr(region)
                 if DEBUG:
-                    print('Selection: {0}'.format(selection))
+                    print(' Selection: {0}'.format(selection))
             elif not self.view.word(region).empty(): # current word as selection
                 selection = v.substr(self.view.word(region))
                 if DEBUG:
-                    print('Word selection: {0}'.format(selection))
+                    print(' Word selection: {0}'.format(selection))
             else:
                 selection = ''
 
@@ -927,11 +985,11 @@ class translatorTextAnalysisCommand(sublime_plugin.TextCommand):
             if source_text=='buffer':
                 selection = sublime.get_clipboard(10000).strip() # limit to prevent issues
                 if DEBUG:
-                    print('Clipboard selection: {0}'.format(selection))
+                    print(' Clipboard selection: {0}'.format(selection))
             elif not region.empty(): # some text selected
                 selection = v.substr(region)
                 if DEBUG:
-                    print('Selection: {0}'.format(selection))
+                    print(' Selection: {0}'.format(selection))
             else:
                 selection = ''
 
@@ -1000,8 +1058,9 @@ class translatorClearAnalysisCommand(sublime_plugin.TextCommand):
         try:
             v.erase_regions(_region_key)
             v.sel().clear()
-        except:
-            pass
+        except Exception as e:
+            if DEBUG:
+                print(" ClearAnalysisCommand error: {}".format(e))
         global REGIONS_ON
         REGIONS_ON = False
 

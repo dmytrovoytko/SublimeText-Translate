@@ -1,7 +1,8 @@
-Translator Plugin (multi-engine) for SublimeText 3 & 4
+Translator Plugin (Google, Bing) for SublimeText 3 & 4
 ======================================================
 
-**Version:** 3.3.3, **[Google] & [Bing] translate**, supported **194+** languages.
+**Version:** 3.4.0, **[Google] & [Bing] translate**, supported **194+** languages.
+Checked SublimeText 4215 & Python 3.14 compatible, SublimeText 3 & Python 3.3 compatible.
 
 
 Thank you for using my package!
@@ -17,24 +18,24 @@ Thank you for using my package!
    
    Preferences ➡️ Package Settings ➡️ Translator ➡️ Settings 
      {
-       "engine": "google",           // "google", "bing", 'bingcn' for cn.bing.com, 'googlehk' for google.com.hk 
+       "engine": "google",           // "google", "bing", 'bingcn' for cn.bing.com, 'googlehk' for google.com.hk
        "source_language": "",        // Leave empty for Auto detection
-       "target_language": "en",      // ! Must be specified 
-       "results_mode": "insert",     // "insert", "replace" or "to_buffer" 
-       "show_popup": false,          // false or true 
-       "replace_linebreaks": false,  // false or true 
+       "target_language": "en",      // ! Must be specified
+       "results_mode": "insert",     // "insert", "replace" or "to_buffer"
+       "show_popup": false,          // false or true
+       "replace_linebreaks": false,  // false or true
        "linebreak_replacement": " ", // could be a space, comma, semicolon, etc
-       "analysis_language": "en"     // Language for Text Analysis: "en", "uk"
+       "analysis_language": "en"     // Text Analysis: "en", "uk" (other values fall back to "en")
      }
 
-2. You can enable key bindings to use translation commands easier:
-   
-   Preferences ➡️ Package Settings ➡️ Translator ➡️ Key Bindings (remove //)
+2. Key bindings are disabled by default. To enable them, remove `//` or add your keys via:
+
+   Preferences ➡️ Package Settings ➡️ Translator ➡️ Key Bindings, e.g.
     [
-      // {"keys": ["ctrl+alt+g"], "command": "translator"},
-      // {"keys": ["ctrl+shift+alt+g"], "command": "translator_to"},  
-      // {"keys": ["ctrl+alt+b"], "command": "translator_from_buffer"},  
-      // {"keys": ["ctrl+alt+a"], "command": "translator_text_analysis"}  
+      {"keys": ["ctrl+alt+g"], "command": "translator"},
+      {"keys": ["ctrl+shift+alt+g"], "command": "translator_to"},
+      {"keys": ["ctrl+alt+b"], "command": "translator_from_buffer"},
+      {"keys": ["ctrl+alt+a"], "command": "translator_text_analysis"}
     ]
 
 
@@ -43,14 +44,15 @@ Thank you for using my package!
 
 Select text (or put cursor on a word to translate), then:
 
-* select `Tools ➡️ Translator ➡️ Translate selected text` 
-*  or bind keys to use `Ctrl+Alt+G` 
+* select `Tools ➡️ Translator ➡️ Translate selected text`
+* or use Command Palette, Ctrl+Shift+P (⌘Cmd+Shift+P in OSX) > `Translate selected text`
+* or enable a hotkey (see Configure above), e.g. `Ctrl+Alt+G`
 
-💡 If you want to **check Readability**, select some text and run **Analyze text** command. 
+💡 If you want to **check Readability**, select some text and run **Analyze text** command.
 You can do it in 3 ways:
-- via binding and using hotkey **Ctrl+Alt+A** (⌘Cmd+Alt+A in OSX)
 - via `Tools ➡️ Translator ➡️ Analyze text`
-- via Command Pallet, Ctrl+Shift+P (⌘Cmd+Shift+P in OSX) > Analyze text
+- via Command Palette, Ctrl+Shift+P (⌘Cmd+Shift+P in OSX) > `Analyze text`
+- via hotkey (disabled by default, see Configure above), e.g. **Ctrl+Alt+A** (⌘Cmd+Alt+A in OSX)
 * to clear Analysis highlights use `Tools ➡️ Translator ➡️ Clear Analysis highlights`
 
 
@@ -61,6 +63,12 @@ If translation works not as you expected, check your language code:
 
 * select Tools ➡️ Translator ➡️ `Print supported languages to console`
 * press `Ctrl + ~` to see output errors/warnings in console
+
+Troubleshooting (see README for details):
+
+* `HTTP Error 429` / ban / captcha: pause for an hour or more, then retry with fewer requests.
+* `!!Google translate error!!` / `!!Bing translate error!!`: switch `engine` (`google` <-> `bing`), shorten text (~1000 chars limit), check console (`View ➡️ Show Console`).
+* Just installed and nothing works: restart Sublime Text so `requests` / `regex` dependencies finish installing.
 
 Support
 =======

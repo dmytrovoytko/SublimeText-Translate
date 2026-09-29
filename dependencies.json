@@ -1,7 +1,10 @@
 {
     "*": {
-        "*": [
-            "requests", "regex", "enum", "typing"
+        "<4201": [
+            "requests", "regex", "enum", "typing" 
+        ],
+        ">=4201": [
+            "requests", "charset-normalizer", "idna", "urllib3", "regex", "enum", "typing"
         ]
     }
 }

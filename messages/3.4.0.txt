@@ -1,0 +1,34 @@
+Translator Plugin (Google, Bing) for SublimeText 3 & 4
+======================================================
+
+**Version:** 3.4.0
+
+Thank you for using my package!
+-------------------------------
+
+# Translator 3.4.0 Changelog
+
+Your _Translator_ plugin has been updated. Enjoy the new version.
+Checked SublimeText 4215 & Python 3.14 compatible, SublimeText 3 & Python 3.3 compatible.
+
+## Improvements
+
+- **NEW**: Changes to support Python 3.14 on ST 4201+
+- better error and edge cases handling
+- README.md reworked and extended, added Troubleshooting
+
+
+## 💡 Tips
+
+If translation works not as you expected, check your language code / errors in console:
+
+* select `Tools ➡️ Translator ➡️ Print supported languages to console`
+* press `Ctrl + ~` to see output errors/warnings in console
+
+## Support
+
+* Your issues, feedback and suggestions regarding Translator plugin are welcome, feel free to report here https://github.com/dmytrovoytko/SublimeText-Translate/issues
+
+* Made with ❤️ in Ukraine 🇺🇦 Dmytro Voytko https://github.com/dmytrovoytko/
+
+If you find Translator package helpful, please ⭐️star⭐️ my repo https://github.com/dmytrovoytko/SublimeText-Translate/ to help other people discover it 🙏
