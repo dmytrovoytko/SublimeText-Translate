@@ -1,4 +1,4 @@
-[![Support Ukraine](https://img.shields.io/badge/Support-Ukraine-FFD500?style=flat&labelColor=005BBB)](https://war.ukraine.ua/support-ukraine/) [![Downloads](https://img.shields.io/packagecontrol/dt/Translator)](https://packagecontrol.io/packages/Translator) ![Maintenance](https://img.shields.io/badge/maintained-yes-green?style=flat-square)
+[![Support Ukraine](https://img.shields.io/badge/Support-Ukraine-FFD500?style=flat&labelColor=005BBB)](https://war.ukraine.ua/support-ukraine/) [![Downloads](https://img.shields.io/packagecontrol/dt/Translator)](https://packagecontrol.io/packages/Translator) ![Maintenance](https://img.shields.io/maintenance/yes/2026?style=flat-square)
 
 
 Translator Plugin (Google, Bing) for SublimeText 3/4
@@ -132,6 +132,6 @@ MIT
 
 ## Credits
 
-* Inspired by old [Inline Google Translate](https://github.com/MTMGroup/SublimeText-Google-Translate-Plugin) package (by MTMGroup) that doesn't work since Google changed API.
+* Inspired by old [Inline Google Translate](https://github.com/MTMGroup/SublimeText-Google-Translate-Plugin) package (by MTMGroup) stopped working as Google changed API.
 * Used [Bing translate API](https://github.com/plainheart/bing-translate-api) approach, 谢谢! 
 * Used [Sentence-splitter](https://github.com/mediacloud/sentence-splitter) for text analysis
