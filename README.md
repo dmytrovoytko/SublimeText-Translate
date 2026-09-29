@@ -89,12 +89,6 @@ No hotkeys are enabled by default. To enable them, go to `Preferences ➡️ Pac
 * Search for and choose “Package Control: Install Package” (give it a few seconds to return a list of available packages)
 * Search for “Translator” and install.
 
-### Manual install
-
-* Clone (or download) this repository into your Sublime `Packages` folder as `Translator`:
-  `git clone https://github.com/dmytrovoytko/SublimeText-Translate.git Translator`
-* Restart Sublime Text so `requests` / `regex` dependencies finish installing.
-
 ## 🧰 Settings
 
 via Preferences ➡️ Package settings ➡️ Translator ➡️ Settings
