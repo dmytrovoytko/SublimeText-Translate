@@ -77,6 +77,8 @@ _TRANSLATION_CACHE_DEFAULT_SIZE = 200
 _TRANSLATOR_CACHE = OrderedDict()
 _TRANSLATOR_CACHE_MAX = 8
 
+_TRANSLATE_BATCH_DELAY_DEFAULT = 0.5
+
 
 def _translation_cache_key(engine, source_lang, target_lang, text):
     raw = "{0}|{1}|{2}|{3}".format(engine, source_lang, target_lang, text)
@@ -133,6 +135,24 @@ def _reset_translator_cache():
     except Exception:
         pass
 
+
+def _get_batch_delay(settings):
+    try:
+        delay = settings.get("translate_batch_delay", _TRANSLATE_BATCH_DELAY_DEFAULT)
+        if isinstance(delay, bool) or not isinstance(delay, (int, float)):
+            return 0
+        if delay < 0:
+            return 0
+        return delay
+    except Exception:
+        return _TRANSLATE_BATCH_DELAY_DEFAULT
+
+def _delay(seconds):
+    try:
+        if seconds > 0:
+            time.sleep(seconds)
+    except Exception:
+        pass
 
 class TextAnalysis():
     def __init__(self, language='en', tokenization='simple'):
@@ -560,6 +580,7 @@ class Translate(object):
         self.cache = {
             'languages': None, 
         }
+        self.last_call_cached = True # to prevent extra delay
         self.api_urls = {
             # 'google':   'https://translate.googleapis.com/translate_a/single?client=webapp', #&ie=UTF-8&oe=UTF-8
             # 'googlehk': 'https://translate.google.com.hk/translate_a/single?client=webapp', #&ie=UTF-8&oe=UTF-8
@@ -777,9 +798,11 @@ class Translate(object):
                     if cached is not None:
                         if DEBUG_TEST or DEBUG:
                             print(' Translation cache hit:', (text[:20] + "...") if len(text) > 20 else text)
+                        self.last_call_cached = True
                         return cached
             except Exception:
                 cache_key = None
+        self.last_call_cached = False
         if self.engine in ['google', 'googlehk']:
             result = self.GoogleTranslate(text, source_lang, target_lang)
         elif self.engine in ['bing', 'bingcn']:
@@ -909,18 +932,24 @@ class translatorCommand(sublime_plugin.TextCommand):
         if not target_language:
             target_language = settings.get("target_language")
         if DEBUG:
-            print('(DEBUG) engine: {0}, source_language {1}, target_language {2}'.format(engine, source_language, target_language))
+            print('(DEBUG) engine: {0}, source_language: {1}, target_language: {2}'.format(engine, source_language, target_language))
 
         translator = _get_translator(engine=engine, source_lang=source_language, target_lang=target_language)
+        _detected = 'Auto' if not source_language else source_language
 
         v = self.view
 
         # Multi-select processing:
+        # Prepare for delays between (only real) API calls
+        batch_delay_time = _get_batch_delay(settings)
+        announced = False
+        
         #  Phase 1 (collect): snapshot selections and translate with zero
         #   buffer mutations, so later regions stay valid. 
         #  Phase 2 (apply) edits back-to-front. 
         #   Fixes insert piling all results after the first region (v.sel()[0])
         #   and offset shift on multi-cursor.
+        network_calls = 0
         snapshot = list(self.view.sel())
         jobs = []
         for region in snapshot:
@@ -950,12 +979,21 @@ class translatorCommand(sublime_plugin.TextCommand):
                     return
                 else:
                     if engine in ['google','googlehk','bing','bingcn']:
+                        if not announced:
+                            sublime.status_message('Translating ({0} {1} --> {2})...'.format(translator.engine, _detected, target_language))
+                            announced = True
+                        if batch_delay_time and not translator.last_call_cached:
+                            if DEBUG:
+                                print(' _delay #', network_calls)
+                            _delay(batch_delay_time)
                         result = translator.translate(selection, source_language, target_language)
+                        network_calls += 0 if translator.last_call_cached else 1
                     else: # TODO process new engines
                         print("\nEngine {} is not supported/working yet.".format(engine))
                         return
 
-                # print('result: {0}'.format(result))
+                if DEBUG and not translator.last_call_cached:
+                    print('result via API call ({0}): {1}'.format(network_calls, result))
                 results_mode = settings.get('results_mode')
                 if settings.get('show_popup')==True:
                     # TODO ?limit result length?
@@ -1041,12 +1079,10 @@ class translatorCommand(sublime_plugin.TextCommand):
                 fixed = pos + _shift_at(pos)
                 v.sel().add(sublime.Region(fixed))
 
-        if jobs:
-            if not source_language:
-                detected = 'Auto'
-            else:
-                detected = source_language
-            sublime.status_message(u'Done! (translate '+detected+' --> '+target_language+' --> '+results_mode+')')
+        if jobs and network_calls > 0:
+            sublime.status_message(u'Done! (translate {0} --> {1}, {2})'.format(_detected, target_language, results_mode))
+        elif announced:
+            sublime.status_message('')
 
     def is_visible(self):
         for region in self.view.sel():

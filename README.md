@@ -103,6 +103,7 @@ via Preferences ➡️ Package settings ➡️ Translator ➡️ Settings
         "show_popup": false,          // false or true
         "translation_cache": true,    // false or true, if not set default = true
         "translation_cache_size": 200,// if not set default = 200
+        "translate_batch_delay": 0.5, // seconds between API calls, 0 disables
         "replace_linebreaks": false,  // false or true
         "linebreak_replacement": " ", // could be a space, comma, semicolon, etc
         "analysis_language": "en"     // Text Analysis: "en", "uk" (other values fall back to "en")
@@ -111,7 +112,7 @@ via Preferences ➡️ Package settings ➡️ Translator ➡️ Settings
 
 ## Troubleshooting
 
-* `HTTP Error 429` / temporary ban / captcha: pause for an hour or more, then retry with fewer requests. Also opening https://translate.google.com / https://www.bing.com/translator (after a pause) may help (check captcha) - to show you're not a robot.
+* `HTTP Error 429` / temporary ban / captcha: pause for an hour or more, then retry with fewer requests. Also opening https://translate.google.com / https://www.bing.com/translator (after a pause) may help (check captcha) - to show you're not a robot. If multi-select translates hit 429, experiment with increasing `translate_batch_delay` (e.g. `1.0`).
 * `!!Google translate error!!` / `!!Bing translate error!!`: switch `engine` (`google` <-> `bing`), shorten the text (limit is ~1000 chars), and check console (`View ➡️ Show Console`).
 * Bing `Max retries exceeded` / session errors: the plugin reuses one session per engine setup (captcha refreshes it automatically); if Bing hard-blocks you, switch engine or pause before retrying.
 * Just installed and nothing works: restart Sublime Text so `requests` / `regex` dependencies finish installing, then retry.

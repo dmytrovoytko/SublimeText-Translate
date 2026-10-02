@@ -6,6 +6,7 @@
     "show_popup": false,          // false or true
     "translation_cache": true,    // false or true, if not set default = true
     "translation_cache_size": 200,// if not set default = 200
+    "translate_batch_delay": 0.5, // seconds between API calls, 0 disables
     "replace_linebreaks": false,  // false or true
     "linebreak_replacement": " ", // could be a space, comma, semicolon, etc
     "analysis_language": "en"     // Text Analysis: "en", "uk" (other values fall back to "en")
