@@ -15,6 +15,7 @@ import random
 import hashlib
 import functools
 import warnings
+import threading
 
 try:
     import requests
@@ -36,7 +37,7 @@ except ImportError:
 from os.path import dirname, realpath
 PLUGINPATH = dirname(realpath(__file__))
 
-__version__ = "3.4.0"
+__version__ = "3.5.0"
 # 3.0.0 + Bing translate engine
 # 3.0.1 + show_popup option to see translation without changing the text
 # 3.0.2 + better error handling (unsuccessful requests)
@@ -50,6 +51,7 @@ __version__ = "3.4.0"
 # 3.3.2 + updated list of languages in google_languages.json, according to https://cloud.google.com/translate/docs/languages
 # 3.3.3 + better error handling, cleaned old/unused code
 # 3.4.0 + small edge case checks and guards; updated dependencies to support Python 3.14 on ST 4201+
+# 3.5.0 + in-memory translation cache
 
 REGIONS_ON = False
 DEBUG_TEST = False
@@ -60,6 +62,61 @@ except ImportError:
     # Used for quick translation test outside SublineText before updating the plugin 
     DEBUG_TEST = True
     import traceback
+
+# In-memory translation cache (no persistence).
+_TRANSLATION_CACHE = OrderedDict()
+_TRANSLATION_CACHE_LOCK = threading.Lock()
+_TRANSLATION_CACHE_DEFAULT_SIZE = 200
+
+def _get_translation_cache_settings():
+    enabled = True
+    maxsize = _TRANSLATION_CACHE_DEFAULT_SIZE
+    try:
+        if not DEBUG_TEST:
+            s = sublime.load_settings("Translator.sublime-settings")
+            v = s.get("translation_cache", True)
+            enabled = v if isinstance(v, bool) else True
+            m = s.get("translation_cache_size", _TRANSLATION_CACHE_DEFAULT_SIZE)
+            if isinstance(m, int) and m >= 0:
+                maxsize = m
+            if maxsize == 0:
+                enabled = False    
+    except Exception:
+        pass
+    return enabled, maxsize
+
+def _translation_cache_key(engine, source_lang, target_lang, text):
+    raw = "{0}|{1}|{2}|{3}".format(engine, source_lang, target_lang, text)
+    return hashlib.sha1(raw.encode("utf-8")).hexdigest()
+
+def _translation_cache_get(key):
+    try:
+        with _TRANSLATION_CACHE_LOCK:
+            value = _TRANSLATION_CACHE.get(key)
+            if value is not None:
+                _TRANSLATION_CACHE.move_to_end(key)
+            return value
+    except Exception:
+        return None
+
+def _translation_cache_set(key, value, maxsize):
+    try:
+        with _TRANSLATION_CACHE_LOCK:
+            _TRANSLATION_CACHE[key] = value
+            _TRANSLATION_CACHE.move_to_end(key)
+            while len(_TRANSLATION_CACHE) > maxsize:
+                _TRANSLATION_CACHE.popitem(last=False)
+    except Exception:
+        pass
+
+def _translation_cache_clear():
+    try:
+        with _TRANSLATION_CACHE_LOCK:
+            count = len(_TRANSLATION_CACHE)
+            _TRANSLATION_CACHE.clear()
+            return count
+    except Exception:
+        return 0
 
 class TextAnalysis():
     def __init__(self, language='en', tokenization='simple'):
@@ -684,12 +741,39 @@ class Translate(object):
             return '!!Bing translate error!!'
 
     def translate(self, text, source_lang='', target_lang=''):
+        # In-memory cache lookup (keyed on resolved langs + exact text).
+        cache_key = None
+        cache_enabled, cache_maxsize = _get_translation_cache_settings()
+        if cache_enabled and cache_maxsize > 0 and text:
+            try:
+                key_text = text
+                if isinstance(key_text, bytes):
+                    key_text = key_text.decode("utf-8")
+                if isinstance(key_text, str):
+                    eff_src = source_lang or self.source
+                    eff_tgt = target_lang or self.target
+                    cache_key = _translation_cache_key(self.engine, eff_src, eff_tgt, key_text)
+                    cached = _translation_cache_get(cache_key)
+                    if cached is not None:
+                        if DEBUG_TEST or DEBUG:
+                            print(' Translation cache hit:', (text[:20] + "...") if len(text) > 20 else text)
+                        return cached
+            except Exception:
+                cache_key = None
         if self.engine in ['google', 'googlehk']:
-            return self.GoogleTranslate(text, source_lang, target_lang)
+            result = self.GoogleTranslate(text, source_lang, target_lang)
         elif self.engine in ['bing', 'bingcn']:
-            return self.BingTranslate(text, source_lang, target_lang)
+            result = self.BingTranslate(text, source_lang, target_lang)
         else: # TODO update with new engines
             return "[{}] is not supported yet. Change engine in settings.".format(self.engine)
+        # Store successful translations only (never errors or empty output).
+        if cache_key is not None and result:
+            try:
+                if '!!' not in result and not (result.startswith("[") and "not supported yet" in result):
+                    _translation_cache_set(cache_key, result, cache_maxsize)
+            except Exception:
+                pass
+        return result
 
 
 def test_text_analysis():
@@ -707,11 +791,13 @@ def test_text_translate1():
         translator = Translate('google', 'uk', 'en')
         langs = translator.langs
         print(translator.translate('Слава Україні!'))
-
-        print('\nGoogle translate HK test')
-        translator = Translate('googlehk', 'uk', 'en')
-        langs = translator.langs
+        # check, should be from cache
         print(translator.translate('Слава Україні!'))
+
+        # print('\nGoogle translate HK test')
+        # translator = Translate('googlehk', 'uk', 'en')
+        # langs = translator.langs
+        # print(translator.translate('Слава Україні!'))
     except Exception as e:
         print('GoogleTranslate error: {}'.format(e))
 
@@ -721,11 +807,13 @@ def test_text_translate2():
         translator = Translate('bing', 'uk', 'en')
         langs = translator.langs
         print(translator.translate('Слава Україні!'))
-
-        print('\nBingCN translation test')
-        translator = Translate('bingcn', 'uk', 'en')
-        langs = translator.langs
+        # check, should be from cache
         print(translator.translate('Слава Україні!'))
+
+        # print('\nBingCN translation test')
+        # translator = Translate('bingcn', 'uk', 'en')
+        # langs = translator.langs
+        # print(translator.translate('Слава Україні!'))
     except Exception as e:
         print('BingTranslate error: {}'.format(e))
 
@@ -1066,6 +1154,12 @@ class translatorClearAnalysisCommand(sublime_plugin.TextCommand):
 
     def is_visible(self):
         return REGIONS_ON
+
+class translatorClearCacheCommand(sublime_plugin.ApplicationCommand):
+
+    def run(self):
+        count = _translation_cache_clear()
+        sublime.status_message('Translation cache cleared ({0} entries).'.format(count))
 
 def plugin_loaded():
     global settings, DEBUG

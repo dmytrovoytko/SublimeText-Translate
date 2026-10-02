@@ -6,7 +6,7 @@ Translator Plugin (Google, Bing) for SublimeText 3/4
 
 [![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner2-direct.svg)](https://stand-with-ukraine.pp.ua)
 
-**Version:** 3.4.0, **[Google] & [Bing] translate**, supported **194+** languages.
+**Version:** 3.5.0, **[Google] & [Bing] translate**, supported **194+** languages.
 
 This plugin uses the public Google/Bing web endpoints, so no API key is needed and it works fast. These endpoints are unofficial and can break if Google/Bing change their URL schema or page markup.
 
@@ -30,6 +30,7 @@ This version includes Google & Bing translate, text readability analysis and sta
     - **to_buffer** - translation goes to clipboard (without changing the text)
 * Ability to show translation in popup without changing original text
 * Ability to translate your clipboard / current word if no text selected
+* In-memory translation cache, should help reduce the frequency of HTTP 429 errors
 * Ability to replace line breaks inside text while translating (with space, comma, etc), useful to translate .po files
 * Ability to analyze text readability and statistics (including Automated Readability Index, Coleman-Liau Index) to improve your documentation or SEO texts.
 
@@ -99,6 +100,8 @@ via Preferences ➡️ Package settings ➡️ Translator ➡️ Settings
         "target_language": "en",      // ! Must be specified
         "results_mode": "insert",     // "insert", "replace" or "to_buffer"
         "show_popup": false,          // false or true
+        "translation_cache": true,    // false or true, if not set default = true
+        "translation_cache_size": 200,// if not set default = 200
         "replace_linebreaks": false,  // false or true
         "linebreak_replacement": " ", // could be a space, comma, semicolon, etc
         "analysis_language": "en"     // Text Analysis: "en", "uk" (other values fall back to "en")

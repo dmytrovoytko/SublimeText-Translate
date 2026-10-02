@@ -1,0 +1,48 @@
+Translator Plugin (Google, Bing) for SublimeText 3 & 4
+======================================================
+
+**Version:** 3.5.0
+
+Thank you for using my package!
+-------------------------------
+
+# Translator 3.5.0 Changelog
+
+Your _Translator_ plugin has been updated. Enjoy the new version.
+Checked SublimeText 4215 & Python 3.14 compatible, SublimeText 3 & Python 3.3 compatible.
+
+## Improvements
+
+- **NEW**: added in-memory translation cache, enabled by default, should help reduce the frequency of HTTP 429 errors.
+
+Add your translation cache settings via
+
+   Preferences ➡️ Package Settings ➡️ Translator ➡️ Settings 
+     {
+       "engine": "google",           // "google", "bing", 'bingcn' for cn.bing.com, 'googlehk' for google.com.hk
+       "source_language": "",        // Leave empty for Auto detection
+       "target_language": "en",      // ! Must be specified
+       "results_mode": "insert",     // "insert", "replace" or "to_buffer"
+       "show_popup": false,          // false or true
+       "translation_cache": true,    // false or true, if not set default = true
+       "translation_cache_size": 200,// if not set default = 200
+       "replace_linebreaks": false,  // false or true
+       "linebreak_replacement": " ", // could be a space, comma, semicolon, etc
+       "analysis_language": "en"     // Text Analysis: "en", "uk" (other values fall back to "en")
+     }
+
+
+## 💡 Tips
+
+If translation works not as you expected, check your language code / errors in console:
+
+* select `Tools ➡️ Translator ➡️ Print supported languages to console`
+* press `Ctrl + ~` to see output errors/warnings in console
+
+## Support
+
+* Your issues, feedback and suggestions regarding Translator plugin are welcome, feel free to report here https://github.com/dmytrovoytko/SublimeText-Translate/issues
+
+* Made with ❤️ in Ukraine 🇺🇦 Dmytro Voytko https://github.com/dmytrovoytko/
+
+If you find Translator package helpful, please ⭐️star⭐️ my repo https://github.com/dmytrovoytko/SublimeText-Translate/ to help other people discover it 🙏

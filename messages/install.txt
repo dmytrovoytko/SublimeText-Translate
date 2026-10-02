@@ -1,7 +1,7 @@
 Translator Plugin (Google, Bing) for SublimeText 3 & 4
 ======================================================
 
-**Version:** 3.4.0, **[Google] & [Bing] translate**, supported **194+** languages.
+**Version:** 3.5.0, **[Google] & [Bing] translate**, supported **194+** languages.
 Checked SublimeText 4215 & Python 3.14 compatible, SublimeText 3 & Python 3.3 compatible.
 
 
@@ -23,6 +23,8 @@ Thank you for using my package!
        "target_language": "en",      // ! Must be specified
        "results_mode": "insert",     // "insert", "replace" or "to_buffer"
        "show_popup": false,          // false or true
+       "translation_cache": true,    // false or true, if not set default = true
+       "translation_cache_size": 200,// if not set default = 200
        "replace_linebreaks": false,  // false or true
        "linebreak_replacement": " ", // could be a space, comma, semicolon, etc
        "analysis_language": "en"     // Text Analysis: "en", "uk" (other values fall back to "en")
