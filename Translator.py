@@ -37,7 +37,7 @@ except ImportError:
 from os.path import dirname, realpath
 PLUGINPATH = dirname(realpath(__file__))
 
-__version__ = "3.5.0"
+__version__ = "3.5.1"
 # 3.0.0 + Bing translate engine
 # 3.0.1 + show_popup option to see translation without changing the text
 # 3.0.2 + better error handling (unsuccessful requests)
@@ -55,6 +55,7 @@ __version__ = "3.5.0"
 #       + Translator object cache: prevent extra Bing calls (bing session)
 #       + Dynamic user settings reload
 #       + Diagnostics command for easier issue reporting
+# 3.5.1 + Multi-select processing rework: proper insert mode behavior
 
 
 REGIONS_ON = False # for TextAnalysis highlights
@@ -913,7 +914,16 @@ class translatorCommand(sublime_plugin.TextCommand):
         translator = _get_translator(engine=engine, source_lang=source_language, target_lang=target_language)
 
         v = self.view
-        for region in self.view.sel():
+
+        # Multi-select processing:
+        #  Phase 1 (collect): snapshot selections and translate with zero
+        #   buffer mutations, so later regions stay valid. 
+        #  Phase 2 (apply) edits back-to-front. 
+        #   Fixes insert piling all results after the first region (v.sel()[0])
+        #   and offset shift on multi-cursor.
+        snapshot = list(self.view.sel())
+        jobs = []
+        for region in snapshot:
             if source_text=='buffer':
                 selection = sublime.get_clipboard(10000).strip() # limit to prevent issues
                 if DEBUG:
@@ -937,9 +947,9 @@ class translatorCommand(sublime_plugin.TextCommand):
                     selection = re.sub(r'\r\n|\r|\n', replacement, selection)
                 if not target_language:
                     self.view.run_command("translator_to")
-                    return                          
+                    return
                 else:
-                    if engine in ['google','googlehk','bing','bingcn']: 
+                    if engine in ['google','googlehk','bing','bingcn']:
                         result = translator.translate(selection, source_language, target_language)
                     else: # TODO process new engines
                         print("\nEngine {} is not supported/working yet.".format(engine))
@@ -953,42 +963,90 @@ class translatorCommand(sublime_plugin.TextCommand):
                     if not confirmation:
                         continue
 
-                if results_mode=='replace':
-                    if not region.empty(): # selected text
-                        v.replace(edit, region, result)
-                    else: # current word
-                        _word = v.substr(v.word(region))
-                        #print('w selection: ->{0}<-'.format(_word))
-                        if _word.strip()=='': 
+                if results_mode == 'to_buffer':
+                    jobs.append({'kind': 'to_buffer', 'pos': region.end(), 'result': result})
+                elif not region.empty(): # selected text
+                    if results_mode == 'replace':
+                        jobs.append({'kind': 'replace_selected', 'pos': region.end(),
+                                     'a': region.begin(), 'b': region.end(), 'result': result})
+                    else: # 'insert': after THIS region, not sel()[0]
+                        jobs.append({'kind': 'insert_selected', 'pos': region.end(),
+                                     'b': region.end(), 'result': result})
+                else: # current word: snapshot word bounds before any edit
+                    wr = v.word(region)
+                    _word = v.substr(wr)
+                    if results_mode == 'replace':
+                        if _word.strip() == '':
                             _shift = 0 if len(_word)==0 else 1
-                            v.insert(edit, v.word(region).begin()+_shift, "{0}".format(result)) # insert to current View window
-                        elif _word[:2] in ['""','" ',"''","' ",'<>','< ','()','( ','[]','[ ','{}','{ ']: #  and source_text=='buffer' 
+                            jobs.append({'kind': 'insert_at', 'pos': wr.begin(),
+                                         'at': wr.begin()+_shift, 'result': result})
+                        elif _word[:2] in ['""','" ',"''","' ",'<>','< ','()','( ','[]','[ ','{}','{ ']:
                             # let's put translation inside the quotes/brackets/etc
-                            v.insert(edit, v.word(region).begin()+1, "{0}".format(result)) # insert to current View window
+                            jobs.append({'kind': 'insert_at', 'pos': wr.begin(),
+                                         'at': wr.begin()+1, 'result': result})
                         else:
-                            pos = (v.word(region)).begin() # beginning of current word
-                            v.replace(edit, v.word(region), result)
-                            v.sel().clear()
-                            v.sel().add(sublime.Region(pos)) # move cursor at the beginning of word
-                elif results_mode=='insert':
-                    if not region.empty(): # selected text
-                        v.insert(edit, v.sel()[0].end(), " {0}".format(result)) # insert to current View window
-                    else: # current word
-                        #print('w selection: {0}'.format(v.substr(v.word(region))))
-                        if v.substr(v.word(region))[:2] in ['""','" ',"''","' ",'<>','< ','()','( ','[]','[ ','{}','{ ']: 
+                            jobs.append({'kind': 'replace_word', 'pos': wr.begin(),
+                                         'a': wr.begin(), 'b': wr.end(),
+                                         'cursor': wr.begin(), 'result': result})
+                    else: # 'insert'
+                        if _word[:2] in ['""','" ',"''","' ",'<>','< ','()','( ','[]','[ ','{}','{ ']:
                             # let's put translation inside the quotes/brackets/etc
-                            v.insert(edit, v.word(region).begin()+1, "{0}".format(result)) # insert to current View window
+                            jobs.append({'kind': 'insert_at', 'pos': wr.begin(),
+                                         'at': wr.begin()+1, 'result': result})
                         else:
                             # insert after
-                            v.insert(edit, v.word(region).end(), " {0}".format(result)) # insert to current View window
-                else: # 'to_buffer'
-                    sublime.set_clipboard(result)
+                            jobs.append({'kind': 'insert_at', 'pos': wr.end(),
+                                         'at': wr.end(), 'result': " {0}".format(result)})
 
-                if not source_language:
-                    detected = 'Auto'
-                else:
-                    detected = source_language
-                sublime.status_message(u'Done! (translate '+detected+' --> '+target_language+' --> '+results_mode+')')
+        # Phase 2 (apply): clipboard jobs first in collected order (final
+        # clipboard = last region, as before); buffer edits back-to-front
+        # so earlier offsets never shift.
+        cursors = []
+        buffer_jobs = [j for j in jobs if j['kind'] != 'to_buffer']
+        for job in jobs:
+            if job['kind'] == 'to_buffer':
+                sublime.set_clipboard(job['result'])
+        for job in sorted(buffer_jobs, key=lambda j: j['pos'], reverse=True):
+            kind = job['kind']
+            if kind == 'replace_selected':
+                v.replace(edit, sublime.Region(job['a'], job['b']), job['result'])
+            elif kind == 'insert_selected':
+                v.insert(edit, job['b'], " {0}".format(job['result']))
+            elif kind == 'insert_at':
+                v.insert(edit, job['at'], job['result'])
+            elif kind == 'replace_word':
+                v.replace(edit, sublime.Region(job['a'], job['b']), job['result'])
+                cursors.append(job['cursor'])
+        if cursors:
+            # Deferred selection fixup (was sel().clear() inside the loop,
+            # which mutated the iterated collection and killed other carets).
+            # Adjust for length deltas of strictly-earlier edits so each
+            # cursor lands at the start of its own replacement.
+            def _shift_at(pos):
+                shift = 0
+                for job in buffer_jobs:
+                    kind = job['kind']
+                    if kind == 'replace_selected' or kind == 'replace_word':
+                        if job['a'] < pos:
+                            shift += len(job['result']) - (job['b'] - job['a'])
+                    elif kind == 'insert_selected':
+                        if job['b'] <= pos:
+                            shift += len(" {0}".format(job['result']))
+                    elif kind == 'insert_at':
+                        if job['at'] <= pos:
+                            shift += len(job['result'])
+                return shift
+            v.sel().clear()
+            for pos in sorted(cursors):
+                fixed = pos + _shift_at(pos)
+                v.sel().add(sublime.Region(fixed))
+
+        if jobs:
+            if not source_language:
+                detected = 'Auto'
+            else:
+                detected = source_language
+            sublime.status_message(u'Done! (translate '+detected+' --> '+target_language+' --> '+results_mode+')')
 
     def is_visible(self):
         for region in self.view.sel():
