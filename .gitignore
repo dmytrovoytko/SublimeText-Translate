@@ -30,3 +30,4 @@ venv.bak/
 _arc/
 _tmp/
 _dev/
+tests/

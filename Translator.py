@@ -21,7 +21,7 @@ try:
     import requests
 except ImportError as e:
     requests = None
-    print("Module `requests` dependency didn't work! Look's like you need to restart Sublime Text.", e)
+    print("Module `requests` dependency didn't work! Looks like you need to restart Sublime Text.", e)
 
 try:
     import regex
@@ -32,7 +32,7 @@ except ImportError:
         from sentence_splitter import SentenceSplitter
     except ImportError as e:
         SentenceSplitter = None
-        print("Module regex/sentence_splitter dependency didn't work! Look's like you need to restart Sublime Text.", e)
+        print("Module regex/sentence_splitter dependency didn't work! Looks like you need to restart Sublime Text.", e)
 
 from os.path import dirname, realpath
 PLUGINPATH = dirname(realpath(__file__))
@@ -52,8 +52,9 @@ __version__ = "3.5.0"
 # 3.3.3 + better error handling, cleaned old/unused code
 # 3.4.0 + small edge case checks and guards; updated dependencies to support Python 3.14 on ST 4201+
 # 3.5.0 + in-memory translation cache
+#       + Translator object cache: prevent extra Bing calls (bing session)
 
-REGIONS_ON = False
+REGIONS_ON = False # for TextAnalysis highlights
 DEBUG_TEST = False
 DEBUG = False
 try:
@@ -68,22 +69,10 @@ _TRANSLATION_CACHE = OrderedDict()
 _TRANSLATION_CACHE_LOCK = threading.Lock()
 _TRANSLATION_CACHE_DEFAULT_SIZE = 200
 
-def _get_translation_cache_settings():
-    enabled = True
-    maxsize = _TRANSLATION_CACHE_DEFAULT_SIZE
-    try:
-        if not DEBUG_TEST:
-            s = sublime.load_settings("Translator.sublime-settings")
-            v = s.get("translation_cache", True)
-            enabled = v if isinstance(v, bool) else True
-            m = s.get("translation_cache_size", _TRANSLATION_CACHE_DEFAULT_SIZE)
-            if isinstance(m, int) and m >= 0:
-                maxsize = m
-            if maxsize == 0:
-                enabled = False    
-    except Exception:
-        pass
-    return enabled, maxsize
+# Reused translators across command runs (to prevent unnecessary Bing calls)
+_TRANSLATOR_CACHE = OrderedDict()
+_TRANSLATOR_CACHE_MAX = 8
+
 
 def _translation_cache_key(engine, source_lang, target_lang, text):
     raw = "{0}|{1}|{2}|{3}".format(engine, source_lang, target_lang, text)
@@ -117,6 +106,29 @@ def _translation_cache_clear():
             return count
     except Exception:
         return 0
+
+
+def _get_translator(engine, source_lang, target_lang):
+    try:
+        key = (engine or '', source_lang or '', target_lang or '')
+        translator = _TRANSLATOR_CACHE.get(key)
+        if translator is None:
+            translator = Translate(engine=engine, source_lang=source_lang, target_lang=target_lang)
+            while len(_TRANSLATOR_CACHE) >= _TRANSLATOR_CACHE_MAX:
+                _TRANSLATOR_CACHE.popitem(last=False)
+            _TRANSLATOR_CACHE[key] = translator
+        else:
+            _TRANSLATOR_CACHE.move_to_end(key)
+        return translator
+    except Exception:
+        return Translate(engine=engine, source_lang=source_lang, target_lang=target_lang)
+
+def _reset_translator_cache():
+    try:
+        _TRANSLATOR_CACHE.clear()
+    except Exception:
+        pass
+
 
 class TextAnalysis():
     def __init__(self, language='en', tokenization='simple'):
@@ -743,7 +755,11 @@ class Translate(object):
     def translate(self, text, source_lang='', target_lang=''):
         # In-memory cache lookup (keyed on resolved langs + exact text).
         cache_key = None
-        cache_enabled, cache_maxsize = _get_translation_cache_settings()
+        try:
+            cache_enabled, cache_maxsize = _get_translation_cache_settings()
+        except:
+            cache_enabled, cache_maxsize = True, _TRANSLATION_CACHE_DEFAULT_SIZE
+
         if cache_enabled and cache_maxsize > 0 and text:
             try:
                 key_text = text
@@ -856,6 +872,23 @@ if __name__ == "__main__":
 import sublime, sublime_plugin
 settings = sublime.load_settings("Translator.sublime-settings")
 
+def _get_translation_cache_settings():
+    enabled = True
+    maxsize = _TRANSLATION_CACHE_DEFAULT_SIZE
+    try:
+        if not DEBUG_TEST:
+            s = sublime.load_settings("Translator.sublime-settings")
+            v = s.get("translation_cache", True)
+            enabled = v if isinstance(v, bool) else True
+            m = s.get("translation_cache_size", _TRANSLATION_CACHE_DEFAULT_SIZE)
+            if isinstance(m, int) and m >= 0:
+                maxsize = m
+            if maxsize == 0:
+                enabled = False    
+    except Exception:
+        pass
+    return enabled, maxsize
+
 class TranslatorError(Exception):
     def __init__(self, exception):
         sublime.status_message('Translation error. Check console.')
@@ -874,7 +907,7 @@ class translatorCommand(sublime_plugin.TextCommand):
         if DEBUG:
             print('(DEBUG) engine: {0}, source_language {1}, target_language {2}'.format(engine, source_language, target_language))
 
-        translator = Translate(engine=engine, source_lang=source_language, target_lang=target_language)
+        translator = _get_translator(engine=engine, source_lang=source_language, target_lang=target_language)
 
         v = self.view
         for region in self.view.sel():
@@ -967,7 +1000,7 @@ class translatorToCommand(sublime_plugin.TextCommand):
         engine = settings.get("engine")
         source_language = settings.get("source_language")
         target_language = settings.get("target_language")
-        translator = Translate(engine, source_language, target_language)
+        translator = _get_translator(engine, source_language, target_language)
 
         langs = translator.langs
         lkey = []
@@ -992,21 +1025,6 @@ class translatorToCommand(sublime_plugin.TextCommand):
 
 class translatorFromBufferCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        settings = sublime.load_settings("Translator.sublime-settings")
-        engine = settings.get("engine")
-        source_language = settings.get("source_language")
-        target_language = settings.get("target_language")
-        translator = Translate(engine, source_language, target_language)
-
-        # def on_done(buffer):
-        #     #print('translatorFromBufferCommand on_done')
-        #     if len(buffer):
-        #         #print('translatorFromBufferCommand executing')
-        #         print('cl: '+buffer)
-        #         self.view.run_command("translator", {"source_text": 'buffer'}) # doesn't call ?!
-        #     else:
-        #         print('Clipboard size is too big (>10000). Please select shorter text.')
-
         buffer = sublime.get_clipboard(10000) #_async(on_done, 10000)
         if len(buffer):
             self.view.run_command("translator", {"source_text": 'buffer'})
@@ -1022,6 +1040,12 @@ class translatorFromBufferCommand(sublime_plugin.TextCommand):
         # else: TODO process new engines
         return False
 
+class translatorClearCacheCommand(sublime_plugin.ApplicationCommand):
+
+    def run(self):
+        count = _translation_cache_clear()
+        sublime.status_message('Translation cache cleared ({0} entries).'.format(count))
+
 
 class translatorInfoCommand(sublime_plugin.TextCommand):
     def run(self, edit):
@@ -1033,7 +1057,7 @@ class translatorInfoCommand(sublime_plugin.TextCommand):
         v = self.view
         selection = v.substr(v.sel()[0])
 
-        translator = Translate(engine, source_language, target_language)
+        translator = _get_translator(engine, source_language, target_language)
         text = (json.dumps(translator.langs, ensure_ascii = False, indent = 2))
 
         notification = 'Translator v{}: [{}] translate, supported {} languages.'.format(__version__, engine, len(translator.langs))
@@ -1154,12 +1178,6 @@ class translatorClearAnalysisCommand(sublime_plugin.TextCommand):
 
     def is_visible(self):
         return REGIONS_ON
-
-class translatorClearCacheCommand(sublime_plugin.ApplicationCommand):
-
-    def run(self):
-        count = _translation_cache_clear()
-        sublime.status_message('Translation cache cleared ({0} entries).'.format(count))
 
 def plugin_loaded():
     global settings, DEBUG

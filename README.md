@@ -112,6 +112,7 @@ via Preferences ➡️ Package settings ➡️ Translator ➡️ Settings
 
 * `HTTP Error 429` / temporary ban / captcha: pause for an hour or more, then retry with fewer requests. Also opening https://translate.google.com / https://www.bing.com/translator (after a pause) may help (check captcha) - to show you're not a robot.
 * `!!Google translate error!!` / `!!Bing translate error!!`: switch `engine` (`google` <-> `bing`), shorten the text (limit is ~1000 chars), and check console (`View ➡️ Show Console`).
+* Bing `Max retries exceeded` / session errors: the plugin reuses one session per engine setup (captcha refreshes it automatically); if Bing hard-blocks you, switch engine or pause before retrying.
 * Just installed and nothing works: restart Sublime Text so `requests` / `regex` dependencies finish installing, then retry.
 * Wrong target language or empty output: confirm `target_language` is set, and `source_language` is empty for auto-detect.
 
