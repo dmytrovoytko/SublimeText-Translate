@@ -37,7 +37,7 @@ except ImportError:
 from os.path import dirname, realpath
 PLUGINPATH = dirname(realpath(__file__))
 
-__version__ = "3.5.1"
+__version__ = "3.6.0"
 # 3.0.0 + Bing translate engine
 # 3.0.1 + show_popup option to see translation without changing the text
 # 3.0.2 + better error handling (unsuccessful requests)

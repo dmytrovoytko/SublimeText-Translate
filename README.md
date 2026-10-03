@@ -6,11 +6,15 @@ Translator Plugin (Google, Bing) for SublimeText 3/4
 
 [![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner2-direct.svg)](https://stand-with-ukraine.pp.ua)
 
-**Version:** 3.5.0, **[Google] & [Bing] translate**, supported **194+** languages.
+**Version:** 3.6.0, **[Google] & [Bing] translate**, supported **194+** languages.
 
 This plugin uses the public Google/Bing web endpoints, so no API key is needed and it works fast. These endpoints are unofficial and can break if Google/Bing change their URL schema or page markup.
 
 This version includes Google & Bing translate, text readability analysis and statistics.
+
+> [!IMPORTANT]  
+> An important difference was discovered in how Sublime Text 3 and 4 send requests to Google Translate. If you are using ST 4 and experiencing issues with Google translation, we likely have a solution. 
+Please update the plugin, switch the engine to `google`, and check the result; then let me know how it went by leaving a comment in the relevant GitHub issue (https://github.com/dmytrovoytko/SublimeText-Translate/issues/). If the issue persists, switch back to `bing`.
 
 > [!IMPORTANT]  
 > Please remember, both (unofficial) APIs have internal limitations, like text no longer than 1000 chars, or requests frequency. Don't overuse it, otherwise you easily get HttpError 4xx like `HTTP Error 429: Too Many Requests` or even temporary ban as they might treat you as a robot. If you get such errors take a pause, for an hour or more. See [Troubleshooting](#troubleshooting).
@@ -31,6 +35,7 @@ This version includes Google & Bing translate, text readability analysis and sta
 * Ability to show translation in popup without changing original text
 * Ability to translate your clipboard / current word if no text selected
 * In-memory translation cache, should help reduce the frequency of HTTP 429 errors
+* Adjustable delay between batch API calls, should help reduce the frequency of HTTP 429 errors
 * Ability to replace line breaks inside text while translating (with space, comma, etc), useful to translate .po files
 * Ability to analyze text readability and statistics (including Automated Readability Index, Coleman-Liau Index) to improve your documentation or SEO texts.
 
@@ -47,7 +52,7 @@ This version includes Google & Bing translate, text readability analysis and sta
 4. If you just want to see translation without changing your text, set **show_popup** to `true` in settings.
 5. To change the default target language, change **target_language** in settings.
 6. Additional commands:
-- you can choose target language and then translate via `Tools ➡️ Translator ➡️ Translate selected to...`
+- to translate just once into a different language (without changing your default `target_language` setting): select text, run `Translate selected to...`, then pick the language from the list
 - you can translate clipboard via `Tools ➡️ Translator ➡️ Translate clipboard`
 - you can clear translation cache via `Tools ➡️ Translator ➡️ Clear translation cache`
 7. Find supported languages via `Tools ➡️ Translator ➡️ Print supported languages to console`
@@ -112,25 +117,24 @@ via Preferences ➡️ Package settings ➡️ Translator ➡️ Settings
 
 ## Troubleshooting
 
-* `HTTP Error 429` / temporary ban / captcha: pause for an hour or more, then retry with fewer requests. Also opening https://translate.google.com / https://www.bing.com/translator (after a pause) may help (check captcha) - to show you're not a robot. If multi-select translates hit 429, experiment with increasing `translate_batch_delay` (e.g. `1.0`).
 * `!!Google translate error!!` / `!!Bing translate error!!`: switch `engine` (`google` <-> `bing`), shorten the text (limit is ~1000 chars), and check console (`View ➡️ Show Console`).
+* `HTTP Error 429` / temporary ban / captcha: pause for an hour or more, then retry with fewer requests. Also opening https://translate.google.com / https://www.bing.com/translator (after a pause) may help (check captcha) - to show you're not a robot. If multi-select translates hit 429, experiment with increasing `translate_batch_delay` (e.g. `1.0`).
 * Bing `Max retries exceeded` / session errors: the plugin reuses one session per engine setup (captcha refreshes it automatically); if Bing hard-blocks you, switch engine or pause before retrying.
 * Just installed and nothing works: restart Sublime Text so `requests` / `regex` dependencies finish installing, then retry.
 * Wrong target language or empty output: confirm `target_language` is set, and `source_language` is empty for auto-detect.
-
+* Copy diagnostics to report your issue via `Tools ➡️ Translator ➡️ Copy diagnostics for issue reports`.
 
 ## 📦️ Plugin repository at GitHub
 
 [Translation plugin (multi-engine, fast) for SublimeText 3 & 4](https://github.com/dmytrovoytko/sublimetext-translate)
 
-Made with ❤️ in Ukraine 🇺🇦 Dmytro Voytko
+## Feedback
 
-If you find Translator package helpful, please ⭐️star⭐️ my repo https://github.com/dmytrovoytko/SublimeText-Translate/ to help other people discover it 🙏
+* Something broken? Report it here: https://github.com/dmytrovoytko/SublimeText-Translate/issues/new?template=bug_report.md (please paste your engine, Sublime build, and console excerpt)
+* Have an idea? Propose it here: https://github.com/dmytrovoytko/SublimeText-Translate/issues/new?template=feature_request.md
+* Like the plugin? ⭐️Star⭐️ my repo: https://github.com/dmytrovoytko/SublimeText-Translate to help other people discover it 🙏
 
-## Support
-
-* Your issues, feedback and suggestions regarding Translator plugin are welcome, feel free to report [here](https://github.com/dmytrovoytko/SublimeText-Translate/issues).
-* Feel free to fork and submit pull requests.
+Made with ❤️ in Ukraine 🇺🇦 Dmytro Voytko https://github.com/dmytrovoytko/
 
 ## 📄 License
 

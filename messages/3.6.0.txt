@@ -1,0 +1,63 @@
+Translator Plugin (Google, Bing) for SublimeText 3 & 4
+======================================================
+
+**Version:** 3.6.0
+
+Thank you for using my package!
+-------------------------------
+
+# Translator 3.6.0 Changelog
+
+Your _Translator_ plugin has been updated. Enjoy the new version.
+Checked SublimeText 4215 & Python 3.14 compatible, SublimeText 3 & Python 3.3 compatible.
+
+An important difference was discovered in how Sublime Text 3 and 4 send requests to Google Translate. If you are using ST 4 and experiencing issues with Google translation, we likely have a solution. 
+Please update the plugin, switch the engine to `google`, and check the result; then let me know how it went by leaving a comment in the relevant GitHub issue (https://github.com/dmytrovoytko/SublimeText-Translate/issues/). If the issue persists, switch back to `bing`.
+
+## Improvements
+
+- Multi-select processing rework: correct insert mode behavior.
+- **NEW**: Multi-select processing: adjustable delay between API calls, translate_batch_delay setting, 
+   enabled by default, should help reduce the frequency of HTTP 429 errors.
+- Bing session captcha: limited to 3 attempts instead of retrying indefinitely and getting blocked.
+- Google translate: use requests.get, urllib.request.urlopen stays as fallback.
+
+Add your translation cache settings via
+
+   Preferences ➡️ Package Settings ➡️ Translator ➡️ Settings 
+     {
+       "engine": "google",           // "google", "bing", 'bingcn' for cn.bing.com, 'googlehk' for google.com.hk
+       "source_language": "",        // Leave empty for Auto detection
+       "target_language": "en",      // ! Must be specified
+       "results_mode": "insert",     // "insert", "replace" or "to_buffer"
+       "show_popup": false,          // false or true
+       "translation_cache": true,    // false or true, if not set default = true
+       "translation_cache_size": 200,// if not set default = 200
+       "translate_batch_delay": 0.5, // seconds between API calls, 0 disables
+       "replace_linebreaks": false,  // false or true
+       "linebreak_replacement": " ", // could be a space, comma, semicolon, etc
+       "analysis_language": "en"     // Text Analysis: "en", "uk" (other values fall back to "en")
+     }
+
+
+## 💡 Tips
+
+If translation works not as you expected, check your language code / errors in console:
+
+* select `Tools ➡️ Translator ➡️ Print supported languages to console`
+* press `Ctrl + ~` to see output errors/warnings in console
+
+Troubleshooting (see README for details):
+
+* `HTTP Error 429` / ban / captcha: pause for an hour or more, then retry with fewer requests.
+* `!!Google translate error!!` / `!!Bing translate error!!`: switch `engine` (`google` <-> `bing`), shorten text (~1000 chars limit), check console (`View ➡️ Show Console`).
+* Just installed and nothing works: restart Sublime Text so `requests` / `regex` dependencies finish installing.
+* Copy diagnostics to report your issue via `Tools ➡️ Translator ➡️ Copy diagnostics for issue reports`.
+
+## Feedback
+
+* Something broken? Report it here: https://github.com/dmytrovoytko/SublimeText-Translate/issues/new?template=bug_report.md (please paste your engine, Sublime build, and console excerpt)
+* Have an idea? Propose it here: https://github.com/dmytrovoytko/SublimeText-Translate/issues/new?template=feature_request.md
+* Like the plugin? ⭐️Star⭐️ my repo: https://github.com/dmytrovoytko/SublimeText-Translate to help other people discover it 🙏
+
+Made with ❤️ in Ukraine 🇺🇦 Dmytro Voytko https://github.com/dmytrovoytko/

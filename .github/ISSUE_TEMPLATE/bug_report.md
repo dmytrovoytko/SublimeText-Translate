@@ -14,12 +14,11 @@ labels: bug
 3.
 
 ## Environment
-<!-- Preferences ➡️ Package Settings ➡️ Translator ➡️ Settings values, or paste them here -->
-- Translator version (see `Preferences ➡️ Package Settings ➡️ Translator` or console on load):
-- Sublime Text build (`Help ➡️ About`, e.g. 4215) and OS:
-- Engine (`google` / `googlehk` / `bing` / `bingcn`):
-- `source_language` / `target_language`:
-- `results_mode`:
+<!-- Run `Translator: Copy diagnostics for issue reports` (via `Tools ➡️ Translator`, or Command Palette) and paste the clipboard block below: -->
+```
+(paste diagnostics block here)
+```
+Your OS version (the block already includes the Sublime build/platform):
 
 ## Console excerpt
 <!-- View ➡️ Show Console, copy any `Translator` / `translate` lines and errors below -->
