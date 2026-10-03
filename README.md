@@ -49,6 +49,7 @@ This version includes Google & Bing translate, text readability analysis and sta
 6. Additional commands:
 - you can choose target language and then translate via `Tools ➡️ Translator ➡️ Translate selected to...`
 - you can translate clipboard via `Tools ➡️ Translator ➡️ Translate clipboard`
+- you can clear translation cache via `Tools ➡️ Translator ➡️ Clear translation cache`
 7. Find supported languages via `Tools ➡️ Translator ➡️ Print supported languages to console`
 
 ### Check readability

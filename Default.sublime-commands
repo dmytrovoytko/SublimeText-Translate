@@ -24,6 +24,10 @@
         "command": "translator_info"
     },
     {
+        "caption":"Clear translation cache",
+        "command": "translator_clear_cache"
+    },
+    {
         "caption":"Analyze text",
         "command": "translator_text_analysis"
     },
