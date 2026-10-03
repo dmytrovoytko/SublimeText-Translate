@@ -1180,9 +1180,14 @@ class translatorClearAnalysisCommand(sublime_plugin.TextCommand):
         return REGIONS_ON
 
 def plugin_loaded():
-    global settings, DEBUG
+    def load_user_settings():
+        global settings, DEBUG
+        settings = sublime.load_settings("Translator.sublime-settings")
+        DEBUG = settings.get('debug', False)
+        if DEBUG:
+            engine = settings.get('engine')
+            print('Translator v{} loaded. Debug ON. Current engine: {}'.format(__version__, engine))
+
     settings = sublime.load_settings("Translator.sublime-settings")
-    DEBUG = settings.get('debug', False)
-    if DEBUG:
-        engine = settings.get('engine')
-        print('Translator v{} loaded. Debug ON. Current engine: {}'.format(__version__, engine))
+    settings.add_on_change( "Preferences", load_user_settings )
+    load_user_settings()
