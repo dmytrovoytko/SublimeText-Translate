@@ -24,6 +24,10 @@
         "command": "translator_info"
     },
     {
+        "caption":"Translator: Copy diagnostics for issue reports",
+        "command": "translator_diagnostics"
+    },
+    {
         "caption":"Clear translation cache",
         "command": "translator_clear_cache"
     },

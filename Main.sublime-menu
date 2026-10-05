@@ -18,7 +18,9 @@
                     { "command": "translator_clear_cache", "caption": "Clear translation cache" },
                     { "caption": "-" },
                     { "command": "translator_text_analysis", "caption": "Analyze text: statistics and readability" },
-                    { "command": "translator_clear_analysis", "caption": "Clear Readability analysis highlights" }
+                    { "command": "translator_clear_analysis", "caption": "Clear Readability analysis highlights" },
+                    { "caption": "-" },
+                    { "command": "translator_diagnostics", "caption": "Copy diagnostics for issue reports" }
                 ]
             }
         ]

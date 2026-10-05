@@ -53,6 +53,9 @@ __version__ = "3.5.0"
 # 3.4.0 + small edge case checks and guards; updated dependencies to support Python 3.14 on ST 4201+
 # 3.5.0 + in-memory translation cache
 #       + Translator object cache: prevent extra Bing calls (bing session)
+#       + Dynamic user settings reload
+#       + Diagnostics command for easier issue reporting
+
 
 REGIONS_ON = False # for TextAnalysis highlights
 DEBUG_TEST = False
@@ -1045,6 +1048,98 @@ class translatorClearCacheCommand(sublime_plugin.ApplicationCommand):
     def run(self):
         count = _translation_cache_clear()
         sublime.status_message('Translation cache cleared ({0} entries).'.format(count))
+
+
+def _diagnostics_block(translator, settings):
+    # One paste-ready block for GitHub issues. Secrets rule: presence
+    # booleans only, never header values. Missing Sublime APIs degrade
+    # to '?' so old builds and test stubs never crash here.
+    try:
+        get_attr = getattr(sublime, 'version', None)
+        build = get_attr() if callable(get_attr) else '?'
+    except Exception:
+        build = '?'
+    try:
+        get_platform = getattr(sublime, 'platform', None)
+        platform = get_platform() if callable(get_platform) else '?'
+    except Exception:
+        platform = '?'
+    try:
+        engine = translator.engine
+        source = translator.source
+        target = translator.target
+    except Exception:
+        engine, source, target = '?', '?', '?'
+    try:
+        results_mode = settings.get('results_mode', '?')
+        batch_delay = settings.get('translate_batch_delay', '?')
+        cache_on = settings.get('translation_cache', True)
+        cache_size = settings.get('translation_cache_size', '?')
+    except Exception:
+        results_mode, batch_delay, cache_on, cache_size = '?', '?', True, '?'
+    try:
+        cache_entries = len(_TRANSLATION_CACHE)
+        instances = len(_TRANSLATOR_CACHE)
+    except Exception:
+        cache_entries, instances = '?', '?'
+    lines = ['--- Translator diagnostics (paste this block into GitHub issues) ---',
+             'Translator version: {0}'.format(__version__),
+             'Sublime build: {0} (platform: {1})'.format(build, platform),
+             'Engine: {0} (source: {1}, target: {2})'.format(engine, source, target),
+             'Settings: results_mode={0}, batch_delay={1}, cache={2}/{3}'.format(
+                 results_mode, batch_delay, cache_on, cache_size),
+             'Translation cache: {0} entries'.format(cache_entries),
+             'Translator instances: {0} cached'.format(instances)]
+    # Per-instance detail, fixed key order (manual rendering: plain dicts
+    # do not preserve order on ST3's Python 3.3). Session is reduced to
+    # None-or-Object: never leak tokens or keys into issue pastes.
+    try:
+        cached_translators = list(_TRANSLATOR_CACHE.values())
+    except Exception:
+        cached_translators = []
+    for cached in cached_translators:
+        try:
+            detail = [
+                ('engine', getattr(cached, 'engine', '?')),
+                ('source', getattr(cached, 'source', '?')),
+                ('target', getattr(cached, 'target', '?')),
+                ('results_mode', getattr(cached, 'results_mode', '?')),
+                ('show_popup', getattr(cached, 'show_popup', '?')),
+                ('last_call_cached', getattr(cached, 'last_call_cached', '?')),
+                ('session', 'Object'
+                 if getattr(cached, 'session', None) is not None else None),
+            ]
+            rendered = ', '.join('{0!r}: {1!r}'.format(key, value)
+                                  for key, value in detail)
+            lines.append('  - {{{0}}}'.format(rendered))
+        except Exception:
+            lines.append('  - {unreadable instance}')
+    if engine in ('bing', 'bingcn'):
+        try:
+            session = getattr(translator, 'session', None)
+            headers = session.headers if session is not None else {}
+            present = lambda name: 'yes' if headers.get(name) else 'no'
+            lines.append('Bing session: {0}, key/token/IG present: {1}/{2}/{3}'.format(
+                'initialized' if session is not None else 'missing',
+                present('key'), present('token'), present('IG')))
+        except Exception:
+            lines.append('Bing session: unknown')
+    return '\n'.join(lines)
+
+
+class translatorDiagnosticsCommand(sublime_plugin.ApplicationCommand):
+
+    def run(self):
+        settings = sublime.load_settings("Translator.sublime-settings")
+        engine = settings.get('engine')
+        source_language = settings.get("source_language")
+        target_language = settings.get("target_language")
+        translator = _get_translator(engine, source_language, target_language)
+        block = _diagnostics_block(translator, settings)
+        print(block)
+        sublime.set_clipboard(block)
+        sublime.status_message('Diagnostics copied to clipboard. Paste it into your issue.')
+        sublime.active_window().run_command("show_panel", {"panel": "console"})
 
 
 class translatorInfoCommand(sublime_plugin.TextCommand):
