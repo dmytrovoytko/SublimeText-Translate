@@ -71,16 +71,12 @@ Troubleshooting (see README for details):
 * `HTTP Error 429` / ban / captcha: pause for an hour or more, then retry with fewer requests.
 * `!!Google translate error!!` / `!!Bing translate error!!`: switch `engine` (`google` <-> `bing`), shorten text (~1000 chars limit), check console (`View ➡️ Show Console`).
 * Just installed and nothing works: restart Sublime Text so `requests` / `regex` dependencies finish installing.
+* Copy diagnostics to report your issue via `Tools ➡️ Translator ➡️ Copy diagnostics for issue reports`.
 
-Support
-=======
+## Feedback
 
-* Your issues, feedback and suggestions regarding Translator plugin are welcome, feel free to report [here](https://github.com/dmytrovoytko/SublimeText-Translate/issues).
-* Feel free to fork and submit pull requests.
+* Something broken? Report it here: https://github.com/dmytrovoytko/SublimeText-Translate/issues/new?template=bug_report.md (please paste your engine, Sublime build, and console excerpt)
+* Have an idea? Propose it here: https://github.com/dmytrovoytko/SublimeText-Translate/issues/new?template=feature_request.md
+* Like the plugin? Star it: https://github.com/dmytrovoytko/SublimeText-Translate to help other people discover it 🙏
 
-Author
-======
-
-* Made with ❤️ in Ukraine 🇺🇦 Dmytro Voytko
-
-If you find Translator package helpful, please ⭐️star⭐️ my repo https://github.com/dmytrovoytko/SublimeText-Translate/ to help other people discover it 🙏
+Made with ❤️ in Ukraine 🇺🇦 Dmytro Voytko https://github.com/dmytrovoytko/
