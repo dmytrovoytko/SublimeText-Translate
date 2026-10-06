@@ -59,7 +59,8 @@
                                     "default": "// Bindings in here override those in \"Default/Default.sublime-keymap\"\n// Just copy, uncomment and save\n[\n\t$0\n]\n"
                                 }
                             },
-                            { "caption": "-" }
+                            { "caption": "-" },
+                            { "command": "translator_diagnostics", "caption": "Copy diagnostics for issue reports" }
                         ]
                     }
                 ]

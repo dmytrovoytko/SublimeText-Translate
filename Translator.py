@@ -118,20 +118,25 @@ def _translation_cache_clear():
         return 0
 
 
-def _get_translator(engine, source_lang, target_lang):
+def _get_translator(engine, source_lang, target_lang, results_mode='insert', show_popup=False):
     try:
         key = (engine or '', source_lang or '', target_lang or '')
         translator = _TRANSLATOR_CACHE.get(key)
         if translator is None:
-            translator = Translate(engine=engine, source_lang=source_lang, target_lang=target_lang)
+            translator = Translate(engine=engine, source_lang=source_lang, target_lang=target_lang, results_mode=results_mode, show_popup=show_popup)
             while len(_TRANSLATOR_CACHE) >= _TRANSLATOR_CACHE_MAX:
                 _TRANSLATOR_CACHE.popitem(last=False)
             _TRANSLATOR_CACHE[key] = translator
         else:
+            # update initial settings with current
+            if results_mode != 'insert':
+                translator.results_mode = results_mode
+            if show_popup != False:
+                translator.show_popup = show_popup
             _TRANSLATOR_CACHE.move_to_end(key)
         return translator
     except Exception:
-        return Translate(engine=engine, source_lang=source_lang, target_lang=target_lang)
+        return Translate(engine=engine, source_lang=source_lang, target_lang=target_lang, results_mode=results_mode, show_popup=show_popup)
 
 def _reset_translator_cache():
     try:
@@ -848,6 +853,85 @@ class Translate(object):
         return result
 
 
+def _diagnostics_block(translator, settings):
+    # One paste-ready block for GitHub issues. Secrets rule: presence
+    # booleans only, never header values. Missing Sublime APIs degrade
+    # to '?' so old builds and test stubs never crash here.
+    try:
+        get_attr = getattr(sublime, 'version', None)
+        build = get_attr() if callable(get_attr) else '?'
+    except Exception:
+        build = '?'
+    try:
+        get_platform = getattr(sublime, 'platform', None)
+        platform = get_platform() if callable(get_platform) else '?'
+    except Exception:
+        platform = '?'
+    try:
+        engine = translator.engine
+        source = translator.source
+        target = translator.target
+    except Exception:
+        engine, source, target = '?', '?', '?'
+    try:
+        results_mode = settings.get('results_mode', '?')
+        batch_delay = settings.get('translate_batch_delay', '?')
+        cache_on = settings.get('translation_cache', True)
+        cache_size = settings.get('translation_cache_size', '?')
+    except Exception:
+        results_mode, batch_delay, cache_on, cache_size = '?', '?', True, '?'
+    try:
+        cache_entries = len(_TRANSLATION_CACHE)
+        instances = len(_TRANSLATOR_CACHE)
+    except Exception:
+        cache_entries, instances = '?', '?'
+    lines = ['--- Translator diagnostics (paste this block into GitHub issues) ---',
+             'Translator version: {0}'.format(__version__),
+             'Sublime build: {0} (platform: {1})'.format(build, platform),
+             'Engine: {0} (source: {1}, target: {2})'.format(engine, source, target),
+             'Settings: results_mode={0}, batch_delay={1}, cache={2}/{3}'.format(
+                 results_mode, batch_delay, cache_on, cache_size),
+             'Translation cache: {0} entries'.format(cache_entries),
+             'Translator instances: {0} cached'.format(instances)]
+    # Per-instance detail, fixed key order (manual rendering: plain dicts
+    # do not preserve order on ST3's Python 3.3). Session is reduced to
+    # None-or-Object: never leak tokens or keys into issue pastes.
+    try:
+        cached_translators = list(_TRANSLATOR_CACHE.values())
+    except Exception:
+        cached_translators = []
+    for cached in cached_translators:
+        try:
+            detail = [
+                ('engine', getattr(cached, 'engine', '?')),
+                ('source', getattr(cached, 'source', '?')),
+                ('target', getattr(cached, 'target', '?')),
+                ('results_mode', getattr(cached, 'results_mode', '?')),
+                ('show_popup', getattr(cached, 'show_popup', '?')),
+                ('last_call_cached', getattr(cached, 'last_call_cached', '?')),
+                ('session', 'Object'
+                 if getattr(cached, 'session', None) is not None else None),
+            ]
+            rendered = ', '.join('{0!r}: {1!r}'.format(key, value)
+                                  for key, value in detail)
+            lines.append('  - {{{0}}}'.format(rendered))
+        except Exception:
+            lines.append('  - {unreadable instance}')
+    if engine in ('bing', 'bingcn'):
+        try:
+            session = getattr(translator, 'session', None)
+            headers = session.headers if session is not None else {}
+            present = lambda name: 'yes' if headers.get(name) else 'no'
+            lines.append('Bing session: {0}, key/token/IG present: {1}/{2}/{3}'.format(
+                'initialized' if session is not None else 'missing',
+                present('key'), present('token'), present('IG')))
+        except Exception:
+            lines.append('Bing session: unknown')
+    else:
+        lines.append("sys.version: {}, urllib.request: {}".format(sys.version, request.__version__))
+    return '\n'.join(lines)
+
+
 def test_text_analysis():
     test_text = """Hey aaa@bbb.com! Can you do me a quick favor?
                 If you get this cheat sheet after clicking on the download button, respond to this email with the words "Got the cheat sheet!" 
@@ -876,11 +960,29 @@ def test_text_translate1():
 def test_text_translate2():
     try:
         print('\nBing translation EN test')
-        translator = Translate('bing', 'uk', 'en')
+        # translator = Translate('bing', 'uk', 'en')
+        engine, source_lang, target_lang = 'bing', 'uk', 'en'
+        results_mode = "replace"
+        show_popup = False
+        translator = _get_translator(
+            engine=engine, source_lang=source_lang, target_lang=target_lang,
+            results_mode=results_mode, show_popup=show_popup
+        )
         langs = translator.langs
         print(translator.translate('Слава Україні!'))
         # check, should be from cache
         print(translator.translate('Слава Україні!'))
+
+        # test diagnostics
+        settings = {
+            "engine": engine,        
+            "source_language": source_lang,   
+            "target_language": target_lang, 
+            "results_mode": results_mode,
+            "show_popup": show_popup,     
+        }
+        block = _diagnostics_block(translator, settings)
+        print(block)
 
         # print('\nBingCN translation test')
         # translator = Translate('bingcn', 'uk', 'en')
@@ -963,7 +1065,9 @@ class translatorCommand(sublime_plugin.TextCommand):
         if DEBUG:
             print('(DEBUG) engine: {0}, source_language: {1}, target_language: {2}'.format(engine, source_language, target_language))
 
-        translator = _get_translator(engine=engine, source_lang=source_language, target_lang=target_language)
+        results_mode = settings.get('results_mode')
+        show_popup = settings.get('show_popup')
+        translator = _get_translator(engine=engine, source_lang=source_language, target_lang=target_language, results_mode=results_mode, show_popup=show_popup)
         _detected = 'Auto' if not source_language else source_language
 
         v = self.view
@@ -1023,8 +1127,7 @@ class translatorCommand(sublime_plugin.TextCommand):
 
                 if DEBUG and not translator.last_call_cached:
                     print('result via API call ({0}): {1}'.format(network_calls, result))
-                results_mode = settings.get('results_mode')
-                if settings.get('show_popup')==True:
+                if show_popup == True:
                     # TODO ?limit result length?
                     confirmation = sublime.ok_cancel_dialog(result, results_mode.upper())
                     if not confirmation:
@@ -1171,83 +1274,6 @@ class translatorClearCacheCommand(sublime_plugin.ApplicationCommand):
     def run(self):
         count = _translation_cache_clear()
         sublime.status_message('Translation cache cleared ({0} entries).'.format(count))
-
-
-def _diagnostics_block(translator, settings):
-    # One paste-ready block for GitHub issues. Secrets rule: presence
-    # booleans only, never header values. Missing Sublime APIs degrade
-    # to '?' so old builds and test stubs never crash here.
-    try:
-        get_attr = getattr(sublime, 'version', None)
-        build = get_attr() if callable(get_attr) else '?'
-    except Exception:
-        build = '?'
-    try:
-        get_platform = getattr(sublime, 'platform', None)
-        platform = get_platform() if callable(get_platform) else '?'
-    except Exception:
-        platform = '?'
-    try:
-        engine = translator.engine
-        source = translator.source
-        target = translator.target
-    except Exception:
-        engine, source, target = '?', '?', '?'
-    try:
-        results_mode = settings.get('results_mode', '?')
-        batch_delay = settings.get('translate_batch_delay', '?')
-        cache_on = settings.get('translation_cache', True)
-        cache_size = settings.get('translation_cache_size', '?')
-    except Exception:
-        results_mode, batch_delay, cache_on, cache_size = '?', '?', True, '?'
-    try:
-        cache_entries = len(_TRANSLATION_CACHE)
-        instances = len(_TRANSLATOR_CACHE)
-    except Exception:
-        cache_entries, instances = '?', '?'
-    lines = ['--- Translator diagnostics (paste this block into GitHub issues) ---',
-             'Translator version: {0}'.format(__version__),
-             'Sublime build: {0} (platform: {1})'.format(build, platform),
-             'Engine: {0} (source: {1}, target: {2})'.format(engine, source, target),
-             'Settings: results_mode={0}, batch_delay={1}, cache={2}/{3}'.format(
-                 results_mode, batch_delay, cache_on, cache_size),
-             'Translation cache: {0} entries'.format(cache_entries),
-             'Translator instances: {0} cached'.format(instances)]
-    # Per-instance detail, fixed key order (manual rendering: plain dicts
-    # do not preserve order on ST3's Python 3.3). Session is reduced to
-    # None-or-Object: never leak tokens or keys into issue pastes.
-    try:
-        cached_translators = list(_TRANSLATOR_CACHE.values())
-    except Exception:
-        cached_translators = []
-    for cached in cached_translators:
-        try:
-            detail = [
-                ('engine', getattr(cached, 'engine', '?')),
-                ('source', getattr(cached, 'source', '?')),
-                ('target', getattr(cached, 'target', '?')),
-                ('results_mode', getattr(cached, 'results_mode', '?')),
-                ('show_popup', getattr(cached, 'show_popup', '?')),
-                ('last_call_cached', getattr(cached, 'last_call_cached', '?')),
-                ('session', 'Object'
-                 if getattr(cached, 'session', None) is not None else None),
-            ]
-            rendered = ', '.join('{0!r}: {1!r}'.format(key, value)
-                                  for key, value in detail)
-            lines.append('  - {{{0}}}'.format(rendered))
-        except Exception:
-            lines.append('  - {unreadable instance}')
-    if engine in ('bing', 'bingcn'):
-        try:
-            session = getattr(translator, 'session', None)
-            headers = session.headers if session is not None else {}
-            present = lambda name: 'yes' if headers.get(name) else 'no'
-            lines.append('Bing session: {0}, key/token/IG present: {1}/{2}/{3}'.format(
-                'initialized' if session is not None else 'missing',
-                present('key'), present('token'), present('IG')))
-        except Exception:
-            lines.append('Bing session: unknown')
-    return '\n'.join(lines)
 
 
 class translatorDiagnosticsCommand(sublime_plugin.ApplicationCommand):
