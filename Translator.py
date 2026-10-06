@@ -56,6 +56,9 @@ __version__ = "3.5.1"
 #       + Dynamic user settings reload
 #       + Diagnostics command for easier issue reporting
 # 3.5.1 + Multi-select processing rework: proper insert mode behavior
+# 3.6.0 + Multi-select processing: adjustable delay between batch API calls, translate_batch_delay setting
+#       + smart delays: fire only after real API calls, skipped for cached
+#       + Bing session captcha: limit retries (3)
 
 
 REGIONS_ON = False # for TextAnalysis highlights
@@ -717,7 +720,7 @@ class Translate(object):
             
         return session
 
-    def BingTranslate(self, text, source_lang='', target_lang=''):
+    def BingTranslate(self, text, source_lang='', target_lang='', _captcha_retries=0):
         if not source_lang:
             source_lang = self.source
         if not target_lang:
@@ -754,8 +757,13 @@ class Translate(object):
             response = _r.json()
             if type(response) is dict:
                 if 'ShowCaptcha' in response.keys():
+                    if _captcha_retries >= 2:
+                        print("Bing translate: captcha persists after 3 attempts, giving up.")
+                        self.last_error = 'captcha required'
+                        return '!!Bing translate error!!'
                     self.session = self._get_bing_session()
-                    return self.BingTranslate(text, source_lang, target_lang)
+                    return self.BingTranslate(text, source_lang, target_lang,
+                                              _captcha_retries=_captcha_retries + 1)
                 elif 'statusCode' in response.keys():
                     if response['statusCode'] == 400:
                         response['errorMessage'] = '1000 characters limit! You send {} characters.'.format(len(text))
