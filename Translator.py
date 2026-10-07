@@ -59,6 +59,7 @@ __version__ = "3.5.1"
 # 3.6.0 + Multi-select processing: adjustable delay between batch API calls, translate_batch_delay setting
 #       + smart delays: fire only after real API calls, skipped for cached
 #       + Bing session captcha: limit retries (3)
+#       + Google translate: use requests.get, urllib.request.urlopen stays as fallback
 
 
 REGIONS_ON = False # for TextAnalysis highlights
@@ -675,8 +676,28 @@ class Translate(object):
             _url  = "{0}&sl={1}&tl={2}&dt=t&q={3}".format(API_URL, source_lang, target_lang, _text)
             if DEBUG_TEST or DEBUG:
                 print(' GoogleTranslate: sl {0}, tl {1}, url {2}'.format(source_lang, target_lang, _url))
-            _data = request.urlopen(_url, timeout=15).read()
-            _obj = json.loads(str(_data,'utf-8'))
+            
+            if requests == None:
+                # urllib.request approach
+                _data = request.urlopen(_url, timeout=15).read()
+                _obj = json.loads(str(_data,'utf-8'))
+            else:
+                # requests approach
+                _r = requests.get(_url, timeout=15)
+                if _r.status_code!=200 or _r.text=='':
+                    print(' Something is wrong with {} request/response. Please try switching engine to bing/bingcn.'.format(API_URL))
+                    if _r.status_code == 429:
+                        print(' HTTP 429 error: rate limited. Google demands a cooldown: pause ~1 hour, do not retry in a loop.')
+                    elif _r.status_code!=200:
+                        print(' status_code: {}.'.format(_r.status_code))
+                    if _r.text=='':
+                        print(' response text is empty.')
+                    return '!!Google translate error!!'
+                _data = _r.text
+                # if DEBUG_TEST or DEBUG:
+                #     print("response:", type(response), dir(response))
+                #     print("data:", type(_data), _data)
+                _obj = json.loads(_data)
             result = []
             for s in _obj[0]:
                 result.append(s[0])
