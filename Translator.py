@@ -941,75 +941,29 @@ def test_text_analysis():
     analysis = TextAnalysis()
     print('TextAnalysis: Example #1\n', analysis.calculate_scores(test_text, debug=DEBUG_TEST))
 
-def test_text_translate1():
+def test_text_translate(text='Слава Україні!', engine='google', source_lang='uk', target_lang='en', diagnostics=True):
+    print('\n{} translate test: {} -> {}'.format(engine, source_lang, target_lang))
+    # for testing diagnostics
+    settings = {
+        "engine": engine,        
+        "source_language": source_lang,   
+        "target_language": target_lang, 
+        "results_mode": "replace",
+        "show_popup": False,     
+    }
     try:
-        print('\nGoogle translate test')
-        translator = Translate('google', 'uk', 'en')
-        langs = translator.langs
-        print(translator.translate('Слава Україні!'))
-        # check, should be from cache
-        print(translator.translate('Слава Україні!'))
-
-        # print('\nGoogle translate HK test')
-        # translator = Translate('googlehk', 'uk', 'en')
-        # langs = translator.langs
-        # print(translator.translate('Слава Україні!'))
-    except Exception as e:
-        print('GoogleTranslate error: {}'.format(e))
-
-def test_text_translate2():
-    try:
-        print('\nBing translation EN test')
-        # translator = Translate('bing', 'uk', 'en')
-        engine, source_lang, target_lang = 'bing', 'uk', 'en'
-        results_mode = "replace"
-        show_popup = False
         translator = _get_translator(
             engine=engine, source_lang=source_lang, target_lang=target_lang,
-            results_mode=results_mode, show_popup=show_popup
         )
-        langs = translator.langs
-        print(translator.translate('Слава Україні!'))
-        # check, should be from cache
-        print(translator.translate('Слава Україні!'))
-
-        # test diagnostics
-        settings = {
-            "engine": engine,        
-            "source_language": source_lang,   
-            "target_language": target_lang, 
-            "results_mode": results_mode,
-            "show_popup": show_popup,     
-        }
+        _langs = translator.langs # prints # of supported languages
+        print(translator.translate(text))
+        # check, should be from cache, so no delay
+        print(translator.translate(text))
+    except Exception as e:
+        print(' {} translate error: {}'.format(engine, e))
+    if diagnostics:
         block = _diagnostics_block(translator, settings)
         print(block)
-
-        # print('\nBingCN translation test')
-        # translator = Translate('bingcn', 'uk', 'en')
-        # langs = translator.langs
-        # print(translator.translate('Слава Україні!'))
-    except Exception as e:
-        print('BingTranslate error: {}'.format(e))
-
-def test_text_translate3():
-    print('\nBing translation Chinese test...')
-    wyw_text = '季姬寂，集鸡，鸡即棘鸡。棘鸡饥叽，季姬及箕稷济鸡。'
-    eng_text = '7 most powerful benefits of journaling.'
-    
-    # try:
-    #     translator = Translate('bingcn', '', 'uk')
-    #     print(translator.translate(wyw_text))
-    #     print(translator.translate(eng_text, 'en', 'zh-CN'))
-    # except Exception as e:
-    #     print('BingCNTranslate error: {}'.format(e))
-
-    try:
-        print('bing', '', 'uk')
-        translator = Translate('bing', '', 'uk')
-        print(translator.translate(wyw_text))
-        print(translator.translate(eng_text, 'en', 'zh-Hans'))
-    except Exception as e:
-        print('BingTranslate error: {}'.format(e))
 
 ## Quick translation test 
 ## works outside SublimeText where sublime modules not available 
@@ -1017,11 +971,30 @@ if __name__ == "__main__":
     # test_text_analysis()
     # exit()
 
-    # test_text_translate1() # Google
+    text = random.choice(['Слава Україні!', 'Герої не вмирають!', 'Все буде Україна!'])
+    engines=[
+        'google', 
+        # 'googlehk', 
+        'bing',
+        # 'bingcn',
+    ]
+    source_lang, target_lang = '', 'en'
+    for engine in engines:
+        test_text_translate(text, engine, source_lang, target_lang)
+        time.sleep(_TRANSLATE_BATCH_DELAY_DEFAULT)
     # exit()
 
-    test_text_translate2() # Bing
-    # test_text_translate3()
+    engine = 'bing'
+    print('\n{} translation Chinese test...'.format(engine))
+    time.sleep(_TRANSLATE_BATCH_DELAY_DEFAULT)
+    wyw_text = '季姬寂，集鸡，鸡即棘鸡。棘鸡饥叽，季姬及箕稷济鸡。'
+    source_lang, target_lang = '', 'en'
+    test_text_translate(wyw_text, engine, source_lang, target_lang)
+
+    time.sleep(_TRANSLATE_BATCH_DELAY_DEFAULT)
+    eng_text = '7 most powerful benefits of journaling'
+    source_lang, target_lang = '', 'zh-Hans' # !! target_lang variant depends on engine, this one for Bing! 
+    test_text_translate(eng_text, engine, source_lang, target_lang)
 
     # exit to prevent Sublime Plugin specific code errors - it works only inside Sublime
     exit()
